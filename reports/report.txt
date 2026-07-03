@@ -1,0 +1,8 @@
+
+    =========================
+    STRATEGY PERFORMANCE
+    =========================
+    Sharpe Ratio: 0.00
+    Alpha: None
+    Beta: None
+    
