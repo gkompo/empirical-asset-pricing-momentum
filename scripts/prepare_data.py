@@ -3,10 +3,8 @@ import shutil
 import urllib.request
 import zipfile
 import io
-import time
 import pandas as pd
 import numpy as np
-import yfinance as yf
 import requests
 import urllib3
 
@@ -26,85 +24,27 @@ def prepare_data():
     else:
         raise FileNotFoundError(f"Source holdings file not found at {src_holdings}")
 
-    # Curate a list of 50 major US stocks with history back to 1999 that exist in Russell 3000
-    curated_tickers = [
-        "MSFT", "AAPL", "AMZN", "CSCO", "WMT", "PG", "JNJ", "XOM", "JPM", "GE",
-        "KO", "MCD", "DIS", "CAT", "IBM", "INTC", "PFE", "MRK", "BAC", "VZ",
-        "T", "CVX", "WFC", "PEP", "HD", "LOW", "HON", "DE", "MMM", "LLY",
-        "ORCL", "LMT", "RTX", "UNH", "COST", "SLB", "CVS", "MS", "AXP", "SCHW",
-        "UPS", "F", "BMY", "GS", "MET", "USB", "TGT", "ADBE", "AXP", "CI"
-    ]
-    # Remove duplicates and ensure ^GSPC is included
-    curated_tickers = list(set(curated_tickers))
-    if "^GSPC" not in curated_tickers:
-        curated_tickers.append("^GSPC")
-        
-    print(f"Selected {len(curated_tickers)} liquid tickers spanning from 1999 to today...")
-
-    # 2. Download historical prices & volumes from yfinance
-    print("Downloading 1999-2026 daily price & volume data from Yahoo Finance...")
-    start_date = "1999-01-01"
-    end_date = "2026-07-03"
+    # 2. Copy close.parquet & volume.parquet from quant_data
+    src_prices = r"C:\Users\USER\Desktop\quant_data\close.parquet"
+    src_volumes = r"C:\Users\USER\Desktop\quant_data\volume.parquet"
     
-    session = requests.Session()
-    session.verify = False
+    dest_prices = r"data/close.parquet"
+    dest_volumes = r"data/volume.parquet"
     
-    try:
-        # Download in a single request to avoid rate limits
-        data = yf.download(curated_tickers, start=start_date, end=end_date, session=session, progress=False, timeout=30)
-        
-        close_df = data["Close"] if "Close" in data.columns else pd.DataFrame()
-        volume_df = data["Volume"] if "Volume" in data.columns else pd.DataFrame()
-        
-        if close_df.empty or close_df.shape[1] < 5:
-            raise ValueError("Downloaded data is empty or missing columns (rate limit / connection issue)")
-            
-        close_df = close_df.dropna(how="all", axis=1)
-        volume_df = volume_df.dropna(how="all", axis=1)
-        
-        close_df = close_df.sort_index()
-        close_df.index.name = "date"
-        
-        volume_df = volume_df.sort_index()
-        volume_df.index.name = "date"
-        
-        dest_prices = r"data/close.parquet"
-        dest_volumes = r"data/volume.parquet"
-        
-        print(f"Saving prices to {dest_prices} (Shape: {close_df.shape})...")
-        close_df.to_parquet(dest_prices)
-        
-        print(f"Saving volumes to {dest_volumes} (Shape: {volume_df.shape})...")
-        volume_df.to_parquet(dest_volumes)
-        
-    except Exception as e:
-        print(f"\n[WARNING] yfinance download failed: {e}")
-        print("Falling back to local 2020-2025 CSV files...")
-        
-        src_prices = r"C:\Users\USER\.gemini\antigravity\scratch\momentumlab\data\historical_prices.csv"
-        src_volumes = r"C:\Users\USER\.gemini\antigravity\scratch\momentumlab\data\historical_volumes.csv"
-        
-        if os.path.exists(src_prices) and os.path.exists(src_volumes):
-            prices_df = pd.read_csv(src_prices, index_col=0, parse_dates=True)
-            prices_df = prices_df.sort_index()
-            prices_df.index.name = "date"
-            
-            volumes_df = pd.read_csv(src_volumes, index_col=0, parse_dates=True)
-            volumes_df = volumes_df.sort_index()
-            volumes_df.index.name = "date"
-            
-            dest_prices = r"data/close.parquet"
-            dest_volumes = r"data/volume.parquet"
-            
-            prices_df.to_parquet(dest_prices)
-            volumes_df.to_parquet(dest_volumes)
-            print("Fallback local files saved successfully!")
-        else:
-            raise FileNotFoundError("Could not find local fallback CSV files.")
+    if os.path.exists(src_prices) and os.path.exists(src_volumes):
+        print(f"Copying price data from {src_prices} to {dest_prices}...")
+        shutil.copy(src_prices, dest_prices)
+        print(f"Copying volume data from {src_volumes} to {dest_volumes}...")
+        shutil.copy(src_volumes, dest_volumes)
+    else:
+        raise FileNotFoundError(f"Could not find quant_data parquets at {src_prices} or {src_volumes}")
 
     # 3. Download Kenneth French 5 Factors Daily
     ff_url = "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_Research_Data_5_Factors_2x3_daily_CSV.zip"
     print(f"Downloading Fama-French 5 Factors from: {ff_url}")
+    
+    session = requests.Session()
+    session.verify = False
     
     try:
         response = session.get(ff_url, timeout=20)
