@@ -95,21 +95,62 @@ The dataset is subject to survivorship bias because it uses a static current ind
 - statsmodels
 - scikit-learn
 - matplotlib
+- pyarrow
 
 ---
 
 ## Project Structure
-src/
-main.py
-config.py
-results/
-data/ (not included - fetched from yfinance)
+- `src/`: Codebase modules (data loader, signal generation, backtest, statistics, regressions, reporting).
+- `scripts/prepare_data.py`: Prepares stock parquet data and downloads Kenneth French's daily 5 factors.
+- `main.py`: Main backtest execution and regression reporting script.
+- `data/`: Contains database and factor cache parquet files.
+- `results/`: Stores backtest metrics and plots.
+- `reports/`: Stores regression report tables in Markdown/text.
+
+---
+
+## Getting Started
+
+1. **Install Dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. **Prepare Data**:
+   Ensure `IWV_holdings.csv` is on the Desktop and `historical_prices.csv` is in the `momentumlab` data folder, then run:
+   ```bash
+   python scripts/prepare_data.py
+   ```
+
+3. **Run Backtest & Regressions**:
+   ```bash
+   python main.py
+   ```
+
+---
+
+## System Architecture Diagram
+
+```mermaid
+graph TD
+    A[IWV_holdings.csv] -->|Universe Tickers| C[align_universe]
+    B[close.parquet] -->|Price Matrix| C
+    C -->|clean_prices| D[Returns Calculation]
+    D -->|compute_returns| E[Daily Returns]
+    E -->|momentum_factor| F[Momentum Signal]
+    F -->|long_short_portfolio| G[Target Weights]
+    G -->|apply_monthly_rebalancing| H[Rebalanced Weights]
+    H -->|shift 1 day| I[Strategy Returns]
+    I -->|apply_transaction_costs| J[Net Returns]
+    J -->|volatility_targeting| K[Vol-Targeted Returns]
+    K -->|fama_french_5 & capm| L[Performance Reports & Tables]
+```
 
 ---
 
 ## Important Notes
 
 - This project is for research and educational purposes
-- Data files are excluded due to size and licensing constraints
 - Results may be affected by survivorship bias 
 - Universe construction is based on current iShares Russell 3000 holdings. This introduces survivorship bias as historical index membership is not available.
+
