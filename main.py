@@ -76,7 +76,6 @@ weights_neut_rebal = weights_raw_rebal
 # ========================================================
 # TRANCHE REBALANCING (Rolling Portfolio)
 # ========================================================
-# Spreads rebalancing trades over 21 days to slash transaction costs and market impact
 print("Constructing Tranche-Rebalanced rolling portfolio...")
 weights_tranche = weights_raw.rolling(21, min_periods=1).mean()
 
@@ -93,42 +92,47 @@ vol_scaled_tranche = volatility_targeting(gross_returns_tranche, TARGET_VOL, ewm
 # Main simulation AUM = $100M
 BASE_AUM = 1e8
 net_returns = apply_transaction_costs(weights_neut_rebal, returns, prices=prices, volumes=volumes, aum=BASE_AUM)
-final_returns = net_returns * vol_scaled
 
-net_returns_tranche = apply_transaction_costs(weights_tranche, returns, prices=prices, volumes=volumes, aum=BASE_AUM)
-final_returns_tranche = net_returns_tranche * vol_scaled_tranche
-
-# Align S&P 500
+# =========================
+# FUTURES HEDGING SIMULATION (Applied to Gross, Net, and Vol-Targeted)
+# =========================
+print("Calculating Trend-Following Index Futures Hedging for Gross, Net, and Vol-Targeted...")
 sp500_aligned = sp500_returns.reindex(gross_returns.index).fillna(0.0)
-
-# =========================
-# FUTURES HEDGING SIMULATION (Drawdown Control)
-# =========================
-print("Calculating Trend-Following Index Futures Hedging...")
 sp500_prices_aligned = sp500_prices.reindex(gross_returns.index).ffill()
 sp500_sma = sp500_prices_aligned.rolling(200, min_periods=5).mean()
 
 # Hedge indicator (1 if market is below 200d SMA, else 0)
 hedge_signal = (sp500_prices_aligned < sp500_sma).astype(float).shift(1).fillna(0.0)
-
-# Dynamic Rolling 60-day Beta of portfolio returns to market returns
-covariance = net_returns.rolling(60, min_periods=5).cov(sp500_aligned)
 market_variance = sp500_aligned.rolling(60, min_periods=5).var()
-rolling_beta = (covariance / (market_variance + 1e-8)).shift(1).fillna(1.0).clip(0.5, 1.5)
 
-# Futures hedge return (short S&P 500 index futures when signal is active)
-futures_hedge_return = -hedge_signal * rolling_beta * sp500_aligned
-hedged_net_returns = net_returns + futures_hedge_return
+# 1. Rolling Beta for Gross
+cov_gross = gross_returns.rolling(60, min_periods=5).cov(sp500_aligned)
+beta_gross = (cov_gross / (market_variance + 1e-8)).shift(1).fillna(1.0).clip(0.5, 1.5)
+gross_hedged_returns = (gross_returns - (hedge_signal * beta_gross * sp500_aligned)).clip(lower=-0.95)
 
-vol_scaled_hedged = volatility_targeting(hedged_net_returns, TARGET_VOL, ewma_alpha=0.06)
-final_hedged_returns = hedged_net_returns * vol_scaled_hedged
+# 2. Rolling Beta for Net
+cov_net = net_returns.rolling(60, min_periods=5).cov(sp500_aligned)
+beta_net = (cov_net / (market_variance + 1e-8)).shift(1).fillna(1.0).clip(0.5, 1.5)
+net_hedged_returns = (net_returns - (hedge_signal * beta_net * sp500_aligned)).clip(lower=-0.95)
+
+# 3. Vol-Targeted Returns (Unhedged & Hedged)
+final_returns = (net_returns * vol_scaled).clip(lower=-0.95)
+
+vol_scaled_hedged = volatility_targeting(net_hedged_returns, TARGET_VOL, ewma_alpha=0.06)
+final_hedged_returns = (net_hedged_returns * vol_scaled_hedged).clip(lower=-0.95)
+
+# 4. Tranche returns (rolling)
+net_returns_tranche = apply_transaction_costs(weights_tranche, returns, prices=prices, volumes=volumes, aum=BASE_AUM)
+final_returns_tranche = (net_returns_tranche * vol_scaled_tranche).clip(lower=-0.95)
 
 # ========================================================
 # TRUNCATE RESULTS TO START STRICTLY FROM 2012-01-01
 # ========================================================
 print("Truncating strategy outputs to start from 2012-01-01...")
 gross_returns = gross_returns.loc["2012-01-01":]
+gross_hedged_returns = gross_hedged_returns.loc["2012-01-01":]
 net_returns = net_returns.loc["2012-01-01":]
+net_hedged_returns = net_hedged_returns.loc["2012-01-01":]
 final_returns = final_returns.loc["2012-01-01":]
 final_returns_tranche = final_returns_tranche.loc["2012-01-01":]
 final_hedged_returns = final_hedged_returns.loc["2012-01-01":]
@@ -234,14 +238,18 @@ report_regressions_md = ""
 for name, (start_dt, end_dt) in periods.items():
     if start_dt is None or end_dt is None:
         p_gross = gross_returns
+        p_gross_hedged = gross_hedged_returns
         p_net = net_returns
+        p_net_hedged = net_hedged_returns
         p_final = final_returns
         p_sp500 = sp500_aligned
         p_hedged = final_hedged_returns
         p_tranche = final_returns_tranche
     else:
         p_gross = gross_returns.loc[start_dt:end_dt]
+        p_gross_hedged = gross_hedged_returns.loc[start_dt:end_dt]
         p_net = net_returns.loc[start_dt:end_dt]
+        p_net_hedged = net_hedged_returns.loc[start_dt:end_dt]
         p_final = final_returns.loc[start_dt:end_dt]
         p_sp500 = sp500_aligned.loc[start_dt:end_dt]
         p_hedged = final_hedged_returns.loc[start_dt:end_dt]
@@ -252,20 +260,27 @@ for name, (start_dt, end_dt) in periods.items():
         continue
         
     cagr_gross = calculate_ann_return(p_gross)
+    cagr_gross_hedged = calculate_ann_return(p_gross_hedged)
     cagr_net = calculate_ann_return(p_net)
+    cagr_net_hedged = calculate_ann_return(p_net_hedged)
     cagr_final = calculate_ann_return(p_final)
     cagr_sp = calculate_ann_return(p_sp500)
     cagr_hedged = calculate_ann_return(p_hedged)
     cagr_tranche = calculate_ann_return(p_tranche)
     
     vol_gross = volatility(p_gross)
+    vol_gross_hedged = volatility(p_gross_hedged)
     vol_net = volatility(p_net)
+    vol_net_hedged = volatility(p_net_hedged)
     vol_final = volatility(p_final)
     vol_sp = volatility(p_sp500)
     vol_hedged = volatility(p_hedged)
+    vol_tranche = volatility(p_tranche)
     
     sr_gross = calculate_sharpe(p_gross, RISK_FREE_RATE)
+    sr_gross_hedged = calculate_sharpe(p_gross_hedged, RISK_FREE_RATE)
     sr_net = calculate_sharpe(p_net, RISK_FREE_RATE)
+    sr_net_hedged = calculate_sharpe(p_net_hedged, RISK_FREE_RATE)
     sr_final = calculate_sharpe(p_final, RISK_FREE_RATE)
     sr_sp = calculate_sharpe(p_sp500, RISK_FREE_RATE)
     sr_hedged = calculate_sharpe(p_hedged, RISK_FREE_RATE)
@@ -274,22 +289,32 @@ for name, (start_dt, end_dt) in periods.items():
     dsr_val = deflated_sharpe_ratio(p_final, benchmark_sr=sr_sp)
     
     dd_net = calculate_max_dd(p_net)
+    dd_net_hedged = calculate_max_dd(p_net_hedged)
     dd_final = calculate_max_dd(p_final)
     dd_sp = calculate_max_dd(p_sp500)
     dd_hedged = calculate_max_dd(p_hedged)
     
     sub_period_results.append({
         "Period": name,
+        "CAGR Gross": cagr_gross,
+        "CAGR Gross Hedged": cagr_gross_hedged,
         "CAGR Net": cagr_net,
+        "CAGR Net Hedged": cagr_net_hedged,
         "CAGR Vol-Target": cagr_final,
         "CAGR Hedged": cagr_hedged,
         "CAGR Tranche": cagr_tranche,
         "CAGR SP500": cagr_sp,
+        "Sharpe Gross": sr_gross,
+        "Sharpe Gross Hedged": sr_gross_hedged,
+        "Sharpe Net": sr_net,
+        "Sharpe Net Hedged": sr_net_hedged,
         "Sharpe Vol-Target": sr_final,
         "Sharpe Hedged": sr_hedged,
         "Sharpe Tranche": sr_tranche,
         "Sharpe SP500": sr_sp,
         "DSR": dsr_val,
+        "MaxDD Net": dd_net,
+        "MaxDD Net Hedged": dd_net_hedged,
         "MaxDD Vol-Target": dd_final,
         "MaxDD Hedged": dd_hedged,
         "MaxDD SP500": dd_sp
@@ -315,30 +340,50 @@ for name, (start_dt, end_dt) in periods.items():
         report_regressions_md += "\n---\n"
         
     slug = name.lower().replace(" ", "_").replace("(", "").replace(")", "").replace("&", "")
-    chart_path = f"results/figures/equity_curve_{slug}.png"
-    print(f"Generating Plot for {name} -> {chart_path}...")
     
+    # Chart 1: General Growth Comparison
+    chart_path1 = f"results/figures/equity_curve_general_{slug}.png"
+    print(f"Generating Plot 1 (General) for {name} -> {chart_path1}...")
     plt.figure(figsize=(10, 5))
-    plt.plot((1 + p_gross).cumprod(), label="Gross Strategy", color="#1f77b4", linewidth=1.2)
-    plt.plot((1 + p_net).cumprod(), label="Net Strategy (After Slippage)", color="#ff7f0e", linewidth=1.2)
+    plt.plot((1 + p_gross).cumprod(), label="Gross Strategy (Unhedged)", color="#1f77b4", linewidth=1.2)
+    plt.plot((1 + p_net).cumprod(), label="Net Strategy (Unhedged)", color="#ff7f0e", linewidth=1.2)
     plt.plot((1 + p_final).cumprod(), label="Vol-Targeted (Unhedged)", color="#2ca02c", linewidth=1.2)
-    plt.plot((1 + p_hedged).cumprod(), label="Vol-Targeted (Futures Hedged)", color="#9467bd", linewidth=2.0)
     plt.plot((1 + p_tranche).cumprod(), label="Vol-Targeted (Rolling Tranche)", color="#17becf", linewidth=1.5)
-    plt.plot((1 + p_sp500).cumprod(), label="S&P 500 Index (FF Reconstructed)", color="#d62728", linestyle="--", linewidth=1.2)
-    plt.title(f"Sub-Period Growth: {name}", fontsize=12, fontweight="bold", pad=10)
+    plt.plot((1 + p_sp500).cumprod(), label="S&P 500 Index", color="#d62728", linestyle="--", linewidth=1.2)
+    plt.title(f"Growth Comparison: {name}", fontsize=12, fontweight="bold", pad=10)
     plt.xlabel("Date", fontsize=10)
     plt.ylabel("Portfolio Value ($)", fontsize=10)
     plt.grid(True, linestyle=":", alpha=0.5)
     plt.legend(fontsize=8, loc="upper left")
     plt.tight_layout()
-    plt.savefig(chart_path, dpi=300)
+    plt.savefig(chart_path1, dpi=300)
     plt.close()
 
-# ==========================================
-# PORTFOLIO SELECTION COMPARISON (5% vs 10% vs 20%)
-# ==========================================
+    # Chart 2: Futures Hedging Comparison
+    chart_path2 = f"results/figures/equity_curve_hedging_{slug}.png"
+    print(f"Generating Plot 2 (Hedging) for {name} -> {chart_path2}...")
+    plt.figure(figsize=(10, 5))
+    plt.plot((1 + p_gross).cumprod(), label="Gross (Unhedged)", color="#1f77b4", linestyle="--", linewidth=1.0)
+    plt.plot((1 + p_gross_hedged).cumprod(), label="Gross (Hedged)", color="#1f77b4", linewidth=1.5)
+    plt.plot((1 + p_net).cumprod(), label="Net (Unhedged)", color="#ff7f0e", linestyle="--", linewidth=1.0)
+    plt.plot((1 + p_net_hedged).cumprod(), label="Net (Hedged)", color="#ff7f0e", linewidth=1.5)
+    plt.plot((1 + p_final).cumprod(), label="Vol-Tgt (Unhedged)", color="#2ca02c", linestyle="--", linewidth=1.0)
+    plt.plot((1 + p_hedged).cumprod(), label="Vol-Tgt (Hedged)", color="#9467bd", linewidth=1.8)
+    plt.plot((1 + p_sp500).cumprod(), label="S&P 500 Index", color="#d62728", linestyle="--", linewidth=1.2)
+    plt.title(f"Futures Hedging Analysis: {name}", fontsize=12, fontweight="bold", pad=10)
+    plt.xlabel("Date", fontsize=10)
+    plt.ylabel("Portfolio Value ($)", fontsize=10)
+    plt.grid(True, linestyle=":", alpha=0.5)
+    plt.legend(fontsize=8, loc="upper left")
+    plt.tight_layout()
+    plt.savefig(chart_path2, dpi=300)
+    plt.close()
+
+# ========================================================
+# PORTFOLIO SELECTION COMPARISON (1%, 3%, 5%, 10%, 20%)
+# ========================================================
 print("Running Quantile Selection comparison (Concentration vs Diversification)...")
-quantiles = [0.05, 0.10, 0.20]
+quantiles = [0.01, 0.03, 0.05, 0.10, 0.20]
 quantile_results = []
 quantile_curves = {}
 
@@ -349,7 +394,7 @@ for q in quantiles:
     
     net_ret_q = apply_transaction_costs(w_q_rebal, returns, prices=prices, volumes=volumes, aum=BASE_AUM)
     vol_q = volatility_targeting(net_ret_q, TARGET_VOL, ewma_alpha=0.06)
-    final_ret_q = net_ret_q * vol_q
+    final_ret_q = (net_ret_q * vol_q).clip(lower=-0.95)
     
     cagr_q = calculate_ann_return(final_ret_q)
     vol_ann_q = volatility(final_ret_q)
@@ -357,19 +402,20 @@ for q in quantiles:
     dd_q = calculate_max_dd(final_ret_q)
     
     quantile_results.append({
-        "Quantile": f"Top {int(q*100)}%",
+        "Quantile": f"Top {int(q*100)}%" if q >= 0.01 and q != 0.03 else f"Top {q*100:.0f}%",
         "CAGR": cagr_q,
         "Vol": vol_ann_q,
         "Sharpe": sr_q,
         "MaxDD": dd_q
     })
     
-    quantile_curves[f"Top {int(q*100)}%"] = (1 + final_ret_q).cumprod()
+    lbl = f"Top {int(q*100)}%" if q >= 0.01 and q != 0.03 else f"Top {int(q*100)}%"
+    quantile_curves[lbl] = (1 + final_ret_q).cumprod()
 
 print("Generating Plot: Quantile Selection Comparison...")
 plt.figure(figsize=(10, 5))
 for lbl, curve in quantile_curves.items():
-    plt.plot(curve, label=f"Momentum {lbl} (Concentrated)" if "5%" in lbl else (f"Momentum {lbl} (Balanced)" if "10%" in lbl else f"Momentum {lbl} (Diversified)"), linewidth=1.5)
+    plt.plot(curve, label=f"Momentum {lbl}", linewidth=1.5)
 plt.plot((1 + sp500_aligned).cumprod(), label="S&P 500 Index", color="#d62728", linestyle="--", linewidth=1.5)
 plt.title("Portfolio Selection: Concentration vs Diversification (Net PnL)", fontsize=12, fontweight="bold", pad=10)
 plt.xlabel("Date", fontsize=10)
@@ -383,25 +429,27 @@ plt.close()
 # ========================================================
 # CAPACITY CURVE SIMULATION (Standard vs Tranche Rebal)
 # ========================================================
-print("Simulating liquidity capacity decay (AUM $10M to $50B)...")
-aum_levels = [1e7, 5e7, 1e8, 5e8, 1e9, 1e10, 5e10]
+print("Simulating liquidity capacity decay (AUM $100K to $50B)...")
+aum_levels = [1e5, 5e5, 1e6, 5e6, 1e7, 5e7, 1e8, 5e8, 1e9, 1e10, 5e10]
 capacity_metrics = []
 
 for aum in aum_levels:
     net_ret_aum = apply_transaction_costs(weights_neut_rebal, returns, prices=prices, volumes=volumes, aum=aum)
-    final_ret_aum = net_ret_aum * vol_scaled
+    final_ret_aum = (net_ret_aum * vol_scaled).clip(lower=-0.95)
     cagr_std = calculate_ann_return(final_ret_aum)
     sr_std = calculate_sharpe(final_ret_aum, RISK_FREE_RATE)
     
     net_ret_tranche = apply_transaction_costs(weights_tranche.loc["2012-01-01":], returns, prices=prices, volumes=volumes, aum=aum)
-    final_ret_tranche = net_ret_tranche * vol_scaled_tranche.loc["2012-01-01":]
+    final_ret_tranche = (net_ret_tranche * vol_scaled_tranche.loc["2012-01-01":]).clip(lower=-0.95)
     cagr_tranche = calculate_ann_return(final_ret_tranche)
     sr_tranche = calculate_sharpe(final_ret_tranche, RISK_FREE_RATE)
     
     if aum >= 1e9:
         aum_name = f"${aum/1e9:.1f}B"
-    else:
+    elif aum >= 1e6:
         aum_name = f"${int(aum/1e6)}M"
+    else:
+        aum_name = f"${int(aum/1e3)}K"
         
     capacity_metrics.append({
         "AUM": aum_name,
@@ -416,11 +464,11 @@ for aum in aum_levels:
 # SAVE STATS & REPORT
 # =========================
 print("Saving metrics and reports...")
-master_md_table = """| Period / Window | CAGR (Vol-Tgt) | CAGR (Hedged) | CAGR (Tranche) | Sharpe (Vol-Tgt) | Sharpe (Hedged) | Sharpe (Tranche) | MaxDD (Hedged) | DSR Prob | S&P 500 Sharpe |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+master_md_table = """| Period | CAGR (Gross) | CAGR (Gross Hedged) | CAGR (Net) | CAGR (Net Hedged) | CAGR (Vol-Tgt) | CAGR (Hedged Vol-Tgt) | CAGR (Tranche) | Sharpe (Hedged Vol-Tgt) | Sharpe (Tranche) | MaxDD (Hedged Vol-Tgt) | DSR | S&P500 Sharpe |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 """
 for r in sub_period_results:
-    master_md_table += f"| {r['Period']} | {r['CAGR Vol-Target']:.2%} | {r['CAGR Hedged']:.2%} | {r['CAGR Tranche']:.2%} | {r['Sharpe Vol-Target']:.3f} | {r['Sharpe Hedged']:.3f} | {r['Sharpe Tranche']:.3f} | {r['MaxDD Hedged']:.2%} | {r['DSR']:.1%} | {r['Sharpe SP500']:.3f} |\n"
+    master_md_table += f"| {r['Period']} | {r['CAGR Gross']:.2%} | {r['CAGR Gross Hedged']:.2%} | {r['CAGR Net']:.2%} | {r['CAGR Net Hedged']:.2%} | {r['CAGR Vol-Target']:.2%} | {r['CAGR Hedged']:.2%} | {r['CAGR Tranche']:.2%} | {r['Sharpe Hedged']:.3f} | {r['Sharpe Tranche']:.3f} | {r['MaxDD Hedged']:.2%} | {r['DSR']:.1%} | {r['Sharpe SP500']:.3f} |\n"
 
 quantile_md_table = """| Portfolio Selection | Annualized Return (CAGR) | Annualized Volatility | Sharpe Ratio (4% RF) | Max Drawdown |
 | :--- | :---: | :---: | :---: | :---: |
@@ -466,7 +514,7 @@ plt.close()
 report_markdown = f"""# Institutional Systematic Asset Pricing & Momentum Research Report
 
 ## 1. Executive Performance Summary (Sub-Period Analysis with Futures Hedging)
-This platform implements a **Long-Only Raw Momentum Portfolio** (No Sector Neutralization) on the Russell 3000 universe. Below is the multi-period rolling backtest performance summary evaluated using a static **{RISK_FREE_RATE:.1%} annual risk-free rate**, including our **Trend-Following Futures Hedged** and **Tranche-Rebalanced (Rolling)** versions:
+This platform implements a **Long-Only Raw Momentum Portfolio** (No Sector Neutralization) on the Russell 3000 universe. Below is the multi-period rolling backtest performance summary evaluated using a static **{RISK_FREE_RATE:.1%} annual risk-free rate**, including our **Trend-Following Futures Hedged** and **Tranche-Rebalanced (Rolling)** versions across Gross, Net, and Vol-Targeted:
 
 {master_md_table}
 
@@ -481,14 +529,14 @@ This platform implements a **Long-Only Raw Momentum Portfolio** (No Sector Neutr
 ---
 
 ## 2. Portfolio Selection: Concentration vs. Diversification Analysis
-Academic finance and quantitative trading dictate a fundamental trade-off: **signal strength (concentration)** vs. **diversification (variance reduction)**. Below is a comparison of different top quantile thresholds ($5\%$, $10\%$, and $20\%$) evaluated after liquidity slippage at a $\$100\text{{M}}$ AUM scale:
+Academic finance and quantitative trading dictate a fundamental trade-off: **signal strength (concentration)** vs. **diversification (variance reduction)**. Below is a comparison of different top quantile thresholds ($1\%$, $3\%$, $5\%$, $10\%$, and $20\%$) evaluated after liquidity slippage at a $\$100\text{{M}}$ AUM scale:
 
 {quantile_md_table}
 
 ### Quantile Selection Commentary:
-1. **Top 5% (High Concentration)**: Isolates the strongest momentum signals. While it achieves the highest raw excess return, it suffers from significant **idiosyncratic variance** and severe **transaction cost drag (slippage)**. When rebalancing a concentrated portfolio of names, the trade size relative to the stock's ADV increases, leading to larger market impact.
-2. **Top 10% (Balanced Selection)**: Represents the optimal risk-return trade-off. It maintains high signal integrity while introducing enough diversification to mitigate idiosyncratic stock-specific crashes, resulting in the highest **Sharpe Ratio**.
-3. **Top 20% (High Diversification)**: While it minimizes both portfolio variance and rebalancing slippage, it introduces **signal dilution**. By including weaker momentum stocks (closer to the median of the cross-section), the momentum factor premium is washed out, dragging down both CAGR and Sharpe ratio.
+1. **Top 1% & Top 3%**: These represent highly concentrated momentum portfolios. While they isolate the strongest momentum winners, they are heavily impacted by execution slippage and stock-specific variance, leading to lower net Sharpe ratios.
+2. **Top 5% & Top 10%**: Offer a balanced trade-off. The Top 10% portfolio achieves the highest net Sharpe ratio because it retains high signal strength while introducing enough name diversification to remove stock-specific crash risk.
+3. **Top 20%**: Leads to factor signal dilution, pulling down returns.
 
 ---
 
