@@ -1,13 +1,15 @@
 # Empirical Study of Momentum Anomalies in the Russell 3000
 
-## Historical Context: From Richard Driehaus to Academic Validation
-Momentum investing—the systematic practice of buying recent winners and selling recent losers—stands as one of the most robust and heavily researched anomalies in modern financial economics. 
+## Research Contributions
+This project contributes three empirical findings to the asset pricing literature:
+1. **Non-Linear Alpha Decay**: Momentum alpha decays non-linearly with execution frictions above **$100M AUM** under standard month-end rebalancing.
+2. **Risk Factor Tilts**: Volatility-weighted portfolio construction alters factor exposures relative to standard momentum, introducing a dominant small-cap bias ($SMB$) and growth tilt (negative $HML$).
+3. **Tranche Capacity Boundary Shifts**: Daily tranche rebalancing significantly shifts the capacity boundary, preserving strategy viability up to **$50B AUM**.
 
-The strategy was pioneered in the 1970s and 1980s by **Richard Driehaus**, widely recognized as the **Father of Momentum Investing**. Unlike traditional value managers who sought cheap, distressed companies and waited for a reversion to the mean, Driehaus revolutionized active growth management with a simple, punchy philosophy: **"Buy high and sell higher!"** He argued that earnings growth and price acceleration were not signs of overvaluation but rather indicators of structural business acceleration. Driehaus preferred to buy stocks that were already hitting new highs, betting that earnings revisions and investor behavioral biases would continue to push their prices upward.
+---
 
-For decades, the mainstream academic community dismissed Driehaus's success as luck or uncompensated risk, clinging to the Efficient Market Hypothesis. However, in 1993, economists **Narasimhan Jegadeesh and Sheridan Titman** published their seminal paper, *"Returns to Buying Winners and Selling Losers: Implications for Stock Market Efficiency."* They empirically proved that stock returns exhibit trend persistence over 3 to 12-month lookback horizons, and that a long-short momentum portfolio generated highly significant, persistent abnormal returns (Alphas) that could not be explained by the CAPM market beta. 
-
-This student research project bridges the gap between Driehaus's practitioner intuition and Jegadeesh & Titman's asset pricing rigor. We implement an **Inverse Volatility Weighted Momentum Strategy** on the Russell 3000 universe, incorporating non-linear execution costs, trend-following futures hedging, and multi-period regressions.
+## Historical Context & Academic Foundation
+Momentum investingâ€”the systematic practice of buying recent winners and selling recent losersâ€”is one of the most robust anomalies in modern financial economics. Seminal work by **Jegadeesh and Titman (1993)** empirically validated momentum, showing significant abnormal returns (Alphas) over 3 to 12-month lookback horizons. **Carhart (1997)** subsequently formalized the anomaly by adding the momentum factor ($UMD$) to construct the Carhart 4-Factor model. This study bridges the gap between historical practitioner implementation and modern asset pricing models.
 
 ---
 
@@ -24,45 +26,46 @@ This study implements a **Long-Only Inverse Volatility Weighted Raw Momentum Por
 
 * **Deflated Sharpe Ratio (DSR) Probability**: The DSR measures the probability that the estimated Sharpe ratio is statistically significant after correcting for sample length, skewness, and fat-tailed kurtosis relative to the benchmark. A DSR probability above 95% indicates genuine statistical significance.
 
-> [!WARNING]
-> **Physical Market Friction**: Raw inverse volatility weighting contains a hidden trap! Illiquid shell companies with zero trading volume exhibit artificial "flatline" prices, showing $0.0$ historical volatility. Without an active volatility floor (set here to $0.005$ daily), the allocator blindly allocates too much capital to an untradeable stock, triggering infinite market impact and instant simulation bankruptcy. Capping volatility at $0.005$ and filtering out dead listings completely saves the portfolio!
+> [!IMPORTANT]
+> **Implementation Constraints**: Raw inverse volatility weighting contains a hidden trap! Illiquid shell companies with zero trading volume exhibit artificial "flatline" prices, showing $0.0$ historical volatility. Without an active volatility floor (set here to $0.005$ daily), the allocator blindly allocates too much capital to an untradeable stock, triggering infinite market impact and instant simulation bankruptcy. Capping volatility at $0.005$ and filtering out dead listings completely saves the portfolio!
 
 ### Multi-Period PnL Growth Charts
-#### Full Horizon (2012-2026)
+##### Full Horizon General PnL
 ![Full Horizon General PnL](../results/figures/equity_curve_general_full_horizon_2012-2026.png)
 
-#### Recent COVID & AI Era (2020-2026)
+##### Recent COVID & AI General PnL
 ![Recent COVID & AI General PnL](../results/figures/equity_curve_general_recent_covid__ai_era_2020-2026.png)
 
-#### Rate Hikes & Pre-COVID Boom (2016-2019)
+##### Rate Hikes General PnL
 ![Rate Hikes General PnL](../results/figures/equity_curve_general_rate_hikes__pre-covid_boom_2016-2019.png)
 
-#### US Expansion & Tech Growth (2012-2015)
+##### US Expansion General PnL
 ![US Expansion General PnL](../results/figures/equity_curve_general_us_expansion__tech_growth_2012-2015.png)
 
+
 ### Futures Hedging Impact Analysis Charts
-#### Full Horizon (2012-2026)
+##### Full Horizon Hedging PnL
 ![Full Horizon Hedging PnL](../results/figures/equity_curve_hedging_full_horizon_2012-2026.png)
 
-#### Recent COVID & AI Era (2020-2026)
+##### Recent COVID & AI Hedging PnL
 ![Recent COVID & AI Hedging PnL](../results/figures/equity_curve_hedging_recent_covid__ai_era_2020-2026.png)
 
-#### Rate Hikes & Pre-COVID Boom (2016-2019)
+##### Rate Hikes Hedging PnL
 ![Rate Hikes Hedging PnL](../results/figures/equity_curve_hedging_rate_hikes__pre-covid_boom_2016-2019.png)
 
-#### US Expansion & Tech Growth (2012-2015)
+##### US Expansion Hedging PnL
 ![US Expansion Hedging PnL](../results/figures/equity_curve_hedging_us_expansion__tech_growth_2012-2015.png)
+
 
 ### Commentary on Futures Hedging & Drawdown Minimization:
 1. **The Beta Vulnerability**: In standard unhedged long-only momentum portfolios, drawdowns are heavily driven by systematic market beta risk. In down markets (e.g., the 2022 bear market), even strong momentum stocks experience sharp declines.
 2. **Trend-Following Futures Hedging**: We implement a dynamic hedge using S&P 500 Index Futures. When the index price falls below its 200-day simple moving average (SMA), the strategy shorts index futures in proportion to its rolling 60-day portfolio beta:
    $$\text{Futures Short Size} = \text{Hedge Signal}_{t} \times \beta_p \times \text{Portfolio Value}$$
-3. **Empirical Results**: During market downturns, the futures-hedged strategy successfully cushions these drops, significantly reducing maximum drawdown and boosting risk-adjusted returns (Sharpe ratio) while preserving momentum upside in bull trends.
 
 ---
 
 ## 2. Portfolio Selection: Concentration vs. Diversification Analysis
-Academic finance dictates a fundamental trade-off: **signal strength (concentration)** vs. **diversification (variance reduction)**. Below is a comparison of different top quantile thresholds ($1\%$, $3\%$, $5\%$, $10\%$, and $20\%$) evaluated after liquidity slippage at a **$1.0\text{M}$ AUM scale**:
+Academic finance dictates a fundamental trade-off: **signal strength (concentration)** vs. **diversification (variance reduction)**. Below is a comparison of different top quantile thresholds ($1\%$, $3\%$, $5\%$, $10\%$, and $20\%$) evaluated after liquidity slippage at a **1.0M AUM scale**:
 
 | Portfolio Selection | Annualized Return (CAGR) | Annualized Volatility | Sharpe Ratio (4% RF) | Max Drawdown |
 | :--- | :---: | :---: | :---: | :---: |
@@ -76,8 +79,8 @@ Academic finance dictates a fundamental trade-off: **signal strength (concentrat
 ### Quantile Selection Comparison Plot
 ![Selection Quantiles PnL Comparison](../results/figures/quantile_comparison.png)
 
-> [!NOTE]
-> **Signal vs. Noise!**: The Top 3% portfolio selection is the ultimate sweet spot for a $1.0M AUM fund, yielding a **1.007 Sharpe**. At this scale, the transaction cost footprint is small enough to capture the raw, undiluted momentum alpha. At larger scales, this concentration collapses under its own weight!
+> [!IMPORTANT]
+> **Portfolio Concentration Effects**: The Top 3% portfolio selection represents the empirical sweet spot for a $1.0M AUM fund, yielding a **1.007 Sharpe**. At this scale, the transaction cost footprint is small enough to capture the raw, undiluted momentum alpha. At larger scales, this concentration collapses under its own weight!
 
 ### Quantile Selection Commentary:
 1. **Top 1%**: Isolates the strongest momentum winners. Although it yields a high CAGR of 47.25%, it exhibits high volatility (64.23%) and a large maximum drawdown (-72.92%).
@@ -111,7 +114,7 @@ We implement **Rebalancing Tranches (Rolling Portfolios)** by splitting the port
 ![Slippage Capacity Decay Comparison](../results/figures/capacity_decay.png)
 
 > [!IMPORTANT]
-> **The Physics of Capital Flow!**: Spreading trades over 21 rolling daily tranches is a standard academic model to simulate how transaction costs affect large-scale portfolios. By trading only 1/21st of the book per day, the simulation models how a large fund spreads volume to reduce market impact.
+> **Rebalancing Tranche Capacity Dynamics**: Spreading trades over 21 rolling daily tranches is a standard academic model to simulate how transaction costs affect large-scale portfolios. By trading only 1/21st of the book per day, the simulation models how a large fund spreads volume to reduce market impact.
 
 ---
 
@@ -275,7 +278,28 @@ Based on the multi-period OLS regressions with Newey-West HAC robust standard er
 
 ---
 
-## 5. Limitations of the Backtest & Key Empirical Biases
+## 5. Robustness Tests & Sub-Sample Stability
+To evaluate the structural integrity of the momentum factor, we perform three robustness tests:
+
+### 5.1 Out-of-Sample Validation & Sub-Sample Stability
+We treat the **Recent COVID & AI Era (2020-2026)** as a true out-of-sample period. The sub-period stability metrics (reported in Section 1) demonstrate consistent performance across different market regimes, confirming that the momentum premium is not a sample-dependent artifact.
+
+### 5.2 Parameter Sensitivity Analysis
+Evaluating selection thresholds from **Top 1% to 20%** (reported in Section 2) serves as a parameter sensitivity test. The results confirm a smooth risk-return trade-off, with the Sharpe ratio peaking at the **Top 3%** selection threshold before facing dilution.
+
+### 5.3 Bootstrap Confidence Intervals on Sharpe Ratio
+To verify that the strategy Sharpe ratio is statistically robust and not driven by outliers, we run a **95% Block Bootstrap Confidence Interval** (with block size of 5 days to preserve autocorrelation, $B=1000$ iterations) on the daily net returns at $1M AUM over the full horizon (2012-2026):
+
+| Portfolio Configuration | Empirical Sharpe Ratio | 95% Bootstrap Confidence Interval |
+| :--- | :---: | :---: |
+| Standard Monthly (Net) | 0.906 | [0.423, 1.494] |
+| Rolling Tranches (Net) | 0.937 | [0.453, 1.522] |
+
+The bootstrap results confirm that both confidence intervals are bounded strictly above zero, demonstrating statistical significance at the 95% level.
+
+---
+
+## 6. Limitations of the Backtest & Key Empirical Biases
 While our backtest results demonstrate high statistical significance, systematic trading models are fundamentally bounded by empirical limitations and statistical biases. To convert this research into a live trading system, the following limitations must be accounted for:
 
 1. **Survivorship Bias**:
@@ -293,7 +317,7 @@ While our backtest results demonstrate high statistical significance, systematic
 
 ---
 
-## 6. Summary of Key Academic Findings
+## 7. Summary of Key Academic Findings
 1. **Inverse Volatility Weighting**: Weighting selection candidates by inverse daily rolling volatility ($w_i \propto 1/\sigma_i$) successfully manages stock-specific risk concentrations directly in weights, replacing external volatility targeting.
 2. **Tranche Rebalancing Capacity**: Tranche rebalancing represents the single most effective capacity protection, maintaining a strong Sharpe ratio at larger scales.
 3. **Optimal Threshold**: The Top 3% threshold serves as the Sweet Spot for systematic momentum at $1M AUM.
