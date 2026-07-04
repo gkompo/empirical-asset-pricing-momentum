@@ -34,9 +34,9 @@ Academic finance dictates a fundamental trade-off: **signal strength (concentrat
 
 
 ### Quantile Selection Commentary:
-1. **Top 1% & Top 3%**: These represent highly concentrated momentum portfolios. While they isolate the strongest momentum winners, they are heavily impacted by execution slippage and stock-specific variance, leading to lower net Sharpe ratios.
-2. **Top 5% & Top 10%**: Offer a balanced trade-off. The Top 10% portfolio achieves the highest net Sharpe ratio because it retains high signal strength while introducing enough name diversification to remove stock-specific crash risk.
-3. **Top 20%**: Leads to factor signal dilution, pulling down returns.
+1. **Top 1%**: Isolates the strongest momentum winners. Although it yields a high CAGR of 47.25%, it exhibits high volatility (64.23%) and a large maximum drawdown (-72.92%).
+2. **Top 3%**: The optimal Sharpe ratio Sweet Spot (**1.007**), yielding a CAGR of 37.76% with manageable risk. At a $1.0M AUM scale, execution slippage is not large enough to erode these concentrated profits.
+3. **Top 5%, 10% & 20%**: Lead to factor signal dilution, pulling down returns.
 
 ---
 
@@ -57,6 +57,15 @@ We implement **Rebalancing Tranches (Rolling Portfolios)** by splitting the port
 | $500M | 11.91% | 0.413 | 22.92% | 0.811 |
 | $1.0B | 6.01% | 0.209 | 21.30% | 0.756 |
 
+
+---
+
+## 4. Institutional Routing Strategies to Minimize Slippage (AUM $100M - $50B)
+
+Executing block-size momentum trades directly onto lit exchanges (such as NYSE or NASDAQ) triggers massive adverse selection and market impact, particularly at scales between **$100M and $50B AUM**. To mitigate this decay, the execution pipeline should be routed via a Smart Order Router (SOR) utilizing the following institutional mechanisms:
+* **Dark Pool Crossing & Block Networks ($100M - $1B AUM)**: Orders should be routed to dark crossing networks (e.g., Liquidnet, Instinet BlockMatch, or ITG Posit) to match blocks internally. This prints trades to the tape only after execution, bypassing the public limit order books and preventing front-running.
+* **Volume/Time-Scheduled Algorithmic Routing ($1B - $10B AUM)**: Order slicing must be scheduled using Time-Weighted Average Price (TWAP) or Volume-Weighted Average Price (VWAP) algorithms. The execution rate should be dynamically throttled to keep the Participation Rate (POV) strictly under **5% of the security's rolling 20-day Average Daily Volume (ADV)**, minimizing market signature.
+* **Internalization & OTC Liquidity Desks ($10B - $50B AUM)**: At mega-cap scale, the portfolio's rebalancing flow should be crossed internally against secondary strategies (such as mean-reversion or value portfolios). Any residual flow is negotiated directly with institutional market makers via bilateral over-the-counter (OTC) block desks, avoiding public exchange books completely.
 
 ---
 
@@ -205,5 +214,5 @@ We implement **Rebalancing Tranches (Rolling Portfolios)** by splitting the port
 ## 5. Summary of Key Academic Findings
 1. **Inverse Volatility Weighting**: Weighting selection candidates by inverse daily rolling volatility ($w_i \propto 1/\sigma_i$) successfully manages stock-specific risk concentrations directly in weights, replacing external volatility targeting.
 2. **Tranche Rebalancing Capacity**: Tranche rebalancing represents the single most effective capacity protection, maintaining a strong Sharpe ratio at larger scales.
-3. **Optimal Threshold**: The Top 10% threshold serves as the Sweet Spot for systematic momentum. Top 5% is dragged down by market impact, while Top 20% suffers from factor premium dilution.
+3. **Optimal Threshold**: The Top 3% threshold serves as the Sweet Spot for systematic momentum at $1M AUM.
 4. **Robust Alpha**: Intercepts (Alphas) calculated using Newey-West standard errors demonstrate that abnormal returns remain resilient to statistical adjustments.
