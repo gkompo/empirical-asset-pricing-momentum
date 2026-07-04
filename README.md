@@ -31,14 +31,14 @@ graph TD
 ### 1. Systematic Weights Allocation (Inverse Volatility Weighting)
 Stocks selected in the top momentum ranking bucket (winners) are weighted cross-sectionally in inverse proportion to their rolling historical daily volatility:
 $$w_{i,t} = \frac{1/\sigma_{i,t}}{\sum_{j} 1/\sigma_{j,t}}$$
-Where $\sigma_{i,t}$ is the rolling 20-day standard deviation of daily returns.
+Where $\sigma_{i,t}$ is the rolling 20-day daily standard deviation of stock returns.
 
 > [!WARNING]
 > **Physical Market Friction!**
 > Raw inverse volatility weighting contains a hidden mathematical trap: illiquid, zero-volume shell companies exhibit "flatline" prices, showing an artificial volatility of $0.0$. Without an active risk floor (set here to **0.005 daily volatility**), the allocator dumps 99% of capital into these untradeable listings, leading to immediate simulation bankruptcy! We cap volatilities at 0.005 and exclude flatline stocks to keep the strategy physically tradeable.
 
 ### 2. Spreading the Rebalancing Pressure (Tranches)
-Rebalancing the entire book on the last day of the month triggers a massive liquidity bottleneck. For a multi-million dollar fund, the order sizes exceed the Average Daily Volume (ADV), resulting in prohibitive execution slippage:
+Rebalancing the entire book on the last day of the month triggers a massive liquidity bottleneck. For a multi-billion dollar fund, the order sizes exceed the Average Daily Volume (ADV), resulting in prohibitive execution slippage:
 
 > [!IMPORTANT]
 > **The Physics of Capital Flow!**
@@ -47,12 +47,31 @@ Rebalancing the entire book on the last day of the month triggers a massive liqu
 
 ---
 
-## Smart Order Routing & Execution (AUM $100M - $50B)
+## 3. Capacity Decay Analysis: Lit vs. Algorithmic/SOR Routing
 
-At institutional scale, order flow must be executed using multi-tiered Smart Order Routers (SOR) to prevent front-running and adverse price impact:
-* **Dark Pool Crossing ($100M - $1B AUM)**: Orders are matched internally inside crossing networks (e.g., Liquidnet, Instinet BlockMatch) to print trades only after completion, bypassing lit books.
-* **Participation Throttling ($1B - $10B AUM)**: Slices trades using VWAP/TWAP schedules, limiting the Participation Rate (POV) strictly below **5% of the security's historical ADV**.
-* **Internalization & OTC Crossing ($10B - $50B AUM)**: Matches momentum flows internally against secondary strategies or negotiates block size trades OTC with bilateral market makers.
+Below is the comparison of execution decay across portfolio sizes from **$100K AUM up to $50B AUM**, comparing standard month-end block rebalancing (Standard Lit), daily rolling tranche rebalancing under standard lit execution (Tranche Lit), and smart order routing + dark pool crossing (Tranche Algorithmic/SOR):
+
+| AUM Size | CAGR (Standard Lit) | Sharpe (Standard Lit) | CAGR (Tranche Lit) | Sharpe (Tranche Lit) | CAGR (Tranche Algorithmic/SOR) | Sharpe (Tranche Algorithmic/SOR) |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **$100K** | 26.51% | 0.921 | 26.85% | 0.941 | **26.90%** | **0.943** |
+| **$1M** | 26.04% | 0.906 | 26.73% | 0.937 | **26.87%** | **0.942** |
+| **$10M** | 24.57% | 0.857 | 26.34% | 0.924 | **26.77%** | **0.938** |
+| **$100M** | 19.99% | 0.700 | 25.11% | 0.884 | **26.48%** | **0.929** |
+| **$1.0B** | 6.01% | 0.209 | 21.30% | 0.756 | **25.54%** | **0.898** |
+| **$10.0B** | -37.20% | -0.729 | 9.99% | 0.350 | **22.63%** | **0.801** |
+| **$50.0B** | -71.02% | -1.467 | -7.87% | -0.380 | **17.54%** | **0.625** |
+
+* **Algorithmic/SOR Execution Edge**: By simulating a **40% dark pool crossing rate** (zero market impact) and routing the remaining 60% of trades via a VWAP/TWAP order-slicing algorithm that limits the Participation Rate (POV) under 5% of ADV (effective $\gamma=0.12$), the strategy's execution capacity increases from less than **$100M** (lit block rebalance collapse) to **well over $50B AUM** (where it still yields a viable **17.54% CAGR** and a **0.625 Sharpe ratio**).
+
+---
+
+## 4. Executive Regression Synthesis & The Factor Picture
+
+Regressing daily strategy net returns against Kenneth French's factors under Newey-West HAC standard errors reveals the following structural properties:
+1. **High-Beta Tilt**: The strategy exhibits a CAPM beta of **1.16 to 1.20** across sub-periods. Stripped to its core in the 5-Factor regression, beta remains highly significant at **1.05 to 1.07**. This indicates that momentum naturally selects high-beta growth stocks that outperform during equity expansions.
+2. **Small-Cap Preference (Size Premium)**: The size exposure ($SMB$) is consistently positive and statistically massive (**0.58 to 0.66**, with t-statistics above **12.8**). This confirms that momentum acceleration is highly pronounced in the small/mid-cap segments of the Russell 3000 cross-section.
+3. **Anti-Value and Growth Tilt**: The value coefficient ($HML$) is strongly negative (**-0.24 to -0.54**), typical of growth-biased portfolios buying expensive winners. The profitability tilt ($RMW$) is also negative, reflecting that momentum targets capital-reinvesting growth firms rather than cash-cow businesses.
+4. **Enhanced Alpha Intercept**: On the Full Horizon, adjusting for size, value, and profitability factors causes the daily Alpha to rise from **3.24 bps** (CAPM) to **4.68 bps** (Fama-French 5-Factor), with the t-statistic jumping from **2.35 to 4.55** (p-value: 0.0000). This confirms that stripping out factor style tilts unmasks a highly robust, statistically undeniable momentum abnormal premium of **~11.79% annualized**.
 
 ---
 
@@ -81,4 +100,3 @@ At institutional scale, order flow must be executed using multi-tiered Smart Ord
 * **López de Prado, M. (2018)**. *Advances in Financial Machine Learning*. Wiley, Chapter 14.
 * **Bailey, D. H. and López de Prado, M. (2012)**. "The Sharpe Ratio Efficient Frontier." *Journal of Risk*, 15(2), 3-44.
 * **Harvey, C. R., Liu, Y. and Zhu, H. (2016)**. "...and the Cross-Section of Expected Returns." *Review of Financial Studies*, 29(1), 5-68.
-

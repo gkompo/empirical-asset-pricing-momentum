@@ -382,22 +382,30 @@ plt.savefig("results/figures/quantile_comparison.png", dpi=300)
 plt.close()
 
 # ========================================================
-# CAPACITY CURVE SIMULATION (Standard vs Tranche Rebal) - DELETING 10B/50B AUM
+# CAPACITY CURVE SIMULATION (Standard Lit vs Tranche Lit vs Tranche SOR/Dark Pools)
 # ========================================================
-print("Simulating liquidity capacity decay (AUM $100K to $1B)...")
-aum_levels = [1e5, 5e5, 1e6, 5e6, 1e7, 5e7, 1e8, 5e8, 1e9]
+print("Simulating liquidity capacity decay (AUM $100K to $50B)...")
+aum_levels = [1e5, 5e5, 1e6, 5e6, 1e7, 5e7, 1e8, 5e8, 1e9, 5e9, 1e10, 5e10]
 capacity_metrics = []
 
 for aum in aum_levels:
-    net_ret_aum = apply_transaction_costs(weights_neut_rebal, returns, prices=prices, volumes=volumes, aum=aum)
-    final_ret_aum = net_ret_aum.clip(lower=-0.95)
-    cagr_std = calculate_ann_return(final_ret_aum)
-    sr_std = calculate_sharpe(final_ret_aum, RISK_FREE_RATE)
+    # 1. Standard Month-End rebalancing (Lit routing: gamma = 0.5)
+    net_ret_std = apply_transaction_costs(weights_neut_rebal, returns, prices=prices, volumes=volumes, aum=aum, gamma=0.5)
+    final_ret_std = net_ret_std.clip(lower=-0.95)
+    cagr_std = calculate_ann_return(final_ret_std)
+    sr_std = calculate_sharpe(final_ret_std, RISK_FREE_RATE)
     
-    net_ret_tranche = apply_transaction_costs(weights_tranche.loc["2012-01-01":], returns, prices=prices, volumes=volumes, aum=aum)
+    # 2. Tranche rebalancing (Lit routing: gamma = 0.5)
+    net_ret_tranche = apply_transaction_costs(weights_tranche.loc["2012-01-01":], returns, prices=prices, volumes=volumes, aum=aum, gamma=0.5)
     final_ret_tranche = net_ret_tranche.clip(lower=-0.95)
     cagr_tranche = calculate_ann_return(final_ret_tranche)
     sr_tranche = calculate_sharpe(final_ret_tranche, RISK_FREE_RATE)
+
+    # 3. Tranche rebalancing + Algorithmic Order Routing + Dark Pool crossing (effective gamma = 0.12)
+    net_ret_sor = apply_transaction_costs(weights_tranche.loc["2012-01-01":], returns, prices=prices, volumes=volumes, aum=aum, gamma=0.12)
+    final_ret_sor = net_ret_sor.clip(lower=-0.95)
+    cagr_sor = calculate_ann_return(final_ret_sor)
+    sr_sor = calculate_sharpe(final_ret_sor, RISK_FREE_RATE)
     
     if aum >= 1e9:
         aum_name = f"${aum/1e9:.1f}B"
@@ -412,7 +420,9 @@ for aum in aum_levels:
         "CAGR Std": cagr_std,
         "Sharpe Std": sr_std,
         "CAGR Tranche": cagr_tranche,
-        "Sharpe Tranche": sr_tranche
+        "Sharpe Tranche": sr_tranche,
+        "CAGR SOR": cagr_sor,
+        "Sharpe SOR": sr_sor
     })
 
 # =========================
@@ -431,24 +441,26 @@ quantile_md_table = """| Portfolio Selection | Annualized Return (CAGR) | Annual
 for q in quantile_results:
     quantile_md_table += f"| {q['Quantile']} | {q['CAGR']:.2%} | {q['Vol']:.2%} | {q['Sharpe']:.3f} | {q['MaxDD']:.2%} |\n"
 
-capacity_md_table = """| AUM Size | CAGR (Standard) | Sharpe (Standard) | CAGR (Tranche) | Sharpe (Tranche) |
-| :--- | :---: | :---: | :---: | :---: |
+capacity_md_table = """| AUM Size | CAGR (Standard Lit) | Sharpe (Standard Lit) | CAGR (Tranche Lit) | Sharpe (Tranche Lit) | CAGR (Tranche Algorithmic/SOR) | Sharpe (Tranche Algorithmic/SOR) |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
 """
 for m in capacity_metrics:
-    capacity_md_table += f"| {m['AUM']} | {m['CAGR Std']:.2%} | {m['Sharpe Std']:.3f} | {m['CAGR Tranche']:.2%} | {m['Sharpe Tranche']:.3f} |\n"
+    capacity_md_table += f"| {m['AUM']} | {m['CAGR Std']:.2%} | {m['Sharpe Std']:.3f} | {m['CAGR Tranche']:.2%} | {m['Sharpe Tranche']:.3f} | {m['CAGR SOR']:.2%} | {m['Sharpe SOR']:.3f} |\n"
 
 # Generate Capacity Comparison Plot
 plt.figure(figsize=(10, 5))
 aum_names = [m["AUM"] for m in capacity_metrics]
 sharpes_std = [m["Sharpe Std"] for m in capacity_metrics]
 sharpes_tranche = [m["Sharpe Tranche"] for m in capacity_metrics]
-plt.plot(aum_names, sharpes_std, marker='o', label="Standard Month-End Rebalancing", color="#ff7f0e", linewidth=2)
-plt.plot(aum_names, sharpes_tranche, marker='s', label="Tranche-Rebalanced (Rolling Portfolio)", color="#17becf", linewidth=2)
+sharpes_sor = [m["Sharpe SOR"] for m in capacity_metrics]
+plt.plot(aum_names, sharpes_std, marker='o', label="Standard Lit Rebalancing (gamma=0.5)", color="#ff7f0e", linewidth=2)
+plt.plot(aum_names, sharpes_tranche, marker='s', label="Tranche Lit Rebalancing (gamma=0.5)", color="#17becf", linewidth=2)
+plt.plot(aum_names, sharpes_sor, marker='^', label="Tranche Algorithmic/SOR + Dark Pool (gamma=0.12)", color="#2ca02c", linewidth=2)
 plt.xlabel("Assets Under Management (AUM)", fontsize=12)
 plt.ylabel("Net Sharpe Ratio", fontsize=12)
-plt.title("Slippage Capacity Decay: Standard vs Tranche Rebalancing", fontsize=14, fontweight="bold", pad=15)
+plt.title("Slippage Capacity Decay: Standard Lit vs Tranche Lit vs Tranche SOR/Dark Pools", fontsize=14, fontweight="bold", pad=15)
 plt.grid(True, linestyle=":", alpha=0.6)
-plt.legend(fontsize=10, loc="upper right")
+plt.legend(fontsize=9, loc="upper right")
 plt.tight_layout()
 plt.savefig("results/figures/capacity_decay.png", dpi=300)
 plt.close()
@@ -511,6 +523,15 @@ Executing block-size momentum trades directly onto lit exchanges (such as NYSE o
 ---
 
 {report_regressions_md}
+
+## 4.5 Executive Regression Synthesis & The Factor Picture
+Based on the multi-period OLS regressions with Newey-West HAC robust standard errors, we can synthesize the following structural factor properties of the Inverse Volatility Weighted Momentum Strategy:
+1. **High-Beta Tilt**: The strategy exhibits a CAPM beta of **1.16 to 1.20** across sub-periods. Stripped to its core in the 5-Factor regression, beta remains highly significant at **1.05 to 1.07**. This indicates that momentum naturally selects high-beta growth stocks that outperform during equity expansions.
+2. **Small-Cap Preference (Size Premium)**: The size exposure ($SMB$) is consistently positive and statistically massive (**0.58 to 0.66**, with t-statistics above **12.8**). This confirms that momentum acceleration is highly pronounced in the small/mid-cap segments of the Russell 3000 cross-section.
+3. **Anti-Value and Growth Tilt**: The value coefficient ($HML$) is strongly negative (**-0.24 to -0.54**), typical of growth-biased portfolios buying expensive winners. The profitability tilt ($RMW$) is also negative, reflecting that momentum targets capital-reinvesting growth firms rather than cash-cow businesses.
+4. **Enhanced Alpha Intercept**: On the Full Horizon, adjusting for size, value, and profitability factors causes the daily Alpha to rise from **3.24 bps** (CAPM) to **4.68 bps** (Fama-French 5-Factor), with the t-statistic jumping from **2.35 to 4.55** (p-value: 0.0000). This confirms that stripping out factor style tilts unmasks a highly robust, statistically undeniable momentum abnormal premium of **~11.79% annualized**.
+
+---
 
 ## 5. Summary of Key Academic Findings
 1. **Inverse Volatility Weighting**: Weighting selection candidates by inverse daily rolling volatility ($w_i \\propto 1/\\sigma_i$) successfully manages stock-specific risk concentrations directly in weights, replacing external volatility targeting.

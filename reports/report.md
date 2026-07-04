@@ -51,17 +51,20 @@ Standard Month-End rebalancing induces high transaction costs because the entire
 
 We implement **Rebalancing Tranches (Rolling Portfolios)** by splitting the portfolio into $N=21$ tranches, rebalancing 1/21st of the portfolio daily. This spreads execution trades across the month, slashing market impact costs:
 
-| AUM Size | CAGR (Standard) | Sharpe (Standard) | CAGR (Tranche) | Sharpe (Tranche) |
-| :--- | :---: | :---: | :---: | :---: |
-| $100K | 26.51% | 0.921 | 26.85% | 0.941 |
-| $500K | 26.24% | 0.913 | 26.78% | 0.939 |
-| $1M | 26.04% | 0.906 | 26.73% | 0.937 |
-| $5M | 25.20% | 0.878 | 26.51% | 0.930 |
-| $10M | 24.57% | 0.857 | 26.34% | 0.924 |
-| $50M | 21.94% | 0.768 | 25.64% | 0.901 |
-| $100M | 19.99% | 0.700 | 25.11% | 0.884 |
-| $500M | 11.91% | 0.413 | 22.92% | 0.811 |
-| $1.0B | 6.01% | 0.209 | 21.30% | 0.756 |
+| AUM Size | CAGR (Standard Lit) | Sharpe (Standard Lit) | CAGR (Tranche Lit) | Sharpe (Tranche Lit) | CAGR (Tranche Algorithmic/SOR) | Sharpe (Tranche Algorithmic/SOR) |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| $100K | 26.51% | 0.921 | 26.85% | 0.941 | 26.90% | 0.943 |
+| $500K | 26.24% | 0.913 | 26.78% | 0.939 | 26.88% | 0.942 |
+| $1M | 26.04% | 0.906 | 26.73% | 0.937 | 26.87% | 0.942 |
+| $5M | 25.20% | 0.878 | 26.51% | 0.930 | 26.81% | 0.940 |
+| $10M | 24.57% | 0.857 | 26.34% | 0.924 | 26.77% | 0.938 |
+| $50M | 21.94% | 0.768 | 25.64% | 0.901 | 26.60% | 0.933 |
+| $100M | 19.99% | 0.700 | 25.11% | 0.884 | 26.48% | 0.929 |
+| $500M | 11.91% | 0.413 | 22.92% | 0.811 | 25.94% | 0.911 |
+| $1.0B | 6.01% | 0.209 | 21.30% | 0.756 | 25.54% | 0.898 |
+| $5.0B | -18.70% | -0.434 | 14.70% | 0.524 | 23.87% | 0.842 |
+| $10.0B | -37.20% | -0.729 | 9.99% | 0.350 | 22.63% | 0.801 |
+| $50.0B | -71.02% | -1.467 | -7.87% | -0.380 | 17.54% | 0.625 |
 
 
 > [!IMPORTANT]
@@ -219,6 +222,15 @@ Executing block-size momentum trades directly onto lit exchanges (such as NYSE o
 
 ---
 
+
+## 4.5 Executive Regression Synthesis & The Factor Picture
+Based on the multi-period OLS regressions with Newey-West HAC robust standard errors, we can synthesize the following structural factor properties of the Inverse Volatility Weighted Momentum Strategy:
+1. **High-Beta Tilt**: The strategy exhibits a CAPM beta of **1.16 to 1.20** across sub-periods. Stripped to its core in the 5-Factor regression, beta remains highly significant at **1.05 to 1.07**. This indicates that momentum naturally selects high-beta growth stocks that outperform during equity expansions.
+2. **Small-Cap Preference (Size Premium)**: The size exposure ($SMB$) is consistently positive and statistically massive (**0.58 to 0.66**, with t-statistics above **12.8**). This confirms that momentum acceleration is highly pronounced in the small/mid-cap segments of the Russell 3000 cross-section.
+3. **Anti-Value and Growth Tilt**: The value coefficient ($HML$) is strongly negative (**-0.24 to -0.54**), typical of growth-biased portfolios buying expensive winners. The profitability tilt ($RMW$) is also negative, reflecting that momentum targets capital-reinvesting growth firms rather than cash-cow businesses.
+4. **Enhanced Alpha Intercept**: On the Full Horizon, adjusting for size, value, and profitability factors causes the daily Alpha to rise from **3.24 bps** (CAPM) to **4.68 bps** (Fama-French 5-Factor), with the t-statistic jumping from **2.35 to 4.55** (p-value: 0.0000). This confirms that stripping out factor style tilts unmasks a highly robust, statistically undeniable momentum abnormal premium of **~11.79% annualized**.
+
+---
 
 ## 5. Summary of Key Academic Findings
 1. **Inverse Volatility Weighting**: Weighting selection candidates by inverse daily rolling volatility ($w_i \propto 1/\sigma_i$) successfully manages stock-specific risk concentrations directly in weights, replacing external volatility targeting.
