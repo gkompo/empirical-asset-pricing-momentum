@@ -1,14 +1,14 @@
 # Institutional Systematic Asset Pricing & Momentum Research Report
 
 ## 1. Executive Performance Summary (Sub-Period Analysis with Futures Hedging)
-This platform implements a **Long-Only Raw Momentum Portfolio** (No Sector Neutralization) on the Russell 3000 universe. Below is the multi-period rolling backtest performance summary evaluated using a static **4.0% annual risk-free rate**, including our **Trend-Following Futures Hedged** and **Tranche-Rebalanced (Rolling)** versions across Gross, Net, and Vol-Targeted:
+This platform implements a **Long-Only Inverse Volatility Weighted Raw Momentum Portfolio** on the Russell 3000 universe. Below is the multi-period rolling backtest performance summary evaluated using a static **4.0% annual risk-free rate**, including our **Trend-Following Futures Hedged** and **Tranche-Rebalanced (Rolling)** versions across Gross and Net:
 
-| Period | CAGR (Gross) | CAGR (Gross Hedged) | CAGR (Net) | CAGR (Net Hedged) | CAGR (Vol-Tgt) | CAGR (Hedged Vol-Tgt) | CAGR (Tranche) | Sharpe (Hedged Vol-Tgt) | Sharpe (Tranche) | MaxDD (Hedged Vol-Tgt) | DSR | S&P500 Sharpe |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| US Expansion & Tech Growth (2012-2015) | 51.16% | 45.50% | 21.84% | 17.32% | -44.46% | -7.58% | 19.28% | -0.198 | 1.303 | -54.13% | 1.2% | 0.843 |
-| Rate Hikes & Pre-COVID Boom (2016-2019) | 38.42% | 33.27% | 25.20% | 20.62% | 15.94% | 13.80% | 20.02% | 0.636 | 0.993 | -12.82% | 70.5% | 0.791 |
-| Recent COVID & AI Era (2020-2026) | 37.01% | 30.34% | 32.69% | 26.24% | 9.80% | 9.30% | 10.74% | 0.525 | 0.654 | -16.64% | 80.7% | 0.614 |
-| Full Horizon (2012-2026) | 41.20% | 35.21% | 27.51% | 22.15% | -7.73% | 5.51% | 15.59% | 0.197 | 0.925 | -54.13% | 10.9% | 0.684 |
+| Period | CAGR (Gross) | CAGR (Gross Hedged) | CAGR (Net) | CAGR (Net Hedged) | CAGR (Tranche) | Sharpe (Net Hedged) | Sharpe (Tranche) | MaxDD (Net Hedged) | DSR | S&P500 Sharpe |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| US Expansion & Tech Growth (2012-2015) | 29.09% | 24.35% | 27.50% | 22.81% | 28.44% | 1.053 | 1.271 | -15.63% | 87.7% | 0.843 |
+| Rate Hikes & Pre-COVID Boom (2016-2019) | 18.46% | 14.27% | 17.19% | 13.05% | 18.75% | 0.604 | 0.832 | -24.46% | 63.4% | 0.791 |
+| Recent COVID & AI Era (2020-2026) | 31.67% | 25.42% | 30.92% | 24.71% | 30.87% | 0.847 | 0.909 | -31.37% | 85.1% | 0.614 |
+| Full Horizon (2012-2026) | 27.16% | 21.93% | 26.03% | 20.85% | 26.73% | 0.824 | 0.937 | -33.97% | 92.3% | 0.684 |
 
 
 * **Deflated Sharpe Ratio (DSR) Probability**: The DSR measures the probability that the estimated Sharpe ratio is statistically significant after correcting for sample length, skewness, and fat-tailed kurtosis relative to the benchmark. A DSR probability above 95% indicates genuine statistical significance.
@@ -22,15 +22,15 @@ This platform implements a **Long-Only Raw Momentum Portfolio** (No Sector Neutr
 ---
 
 ## 2. Portfolio Selection: Concentration vs. Diversification Analysis
-Academic finance and quantitative trading dictate a fundamental trade-off: **signal strength (concentration)** vs. **diversification (variance reduction)**. Below is a comparison of different top quantile thresholds ($1\%$, $3\%$, $5\%$, $10\%$, and $20\%$) evaluated after liquidity slippage at a $\$100	ext{M}$ AUM scale:
+Academic finance dictates a fundamental trade-off: **signal strength (concentration)** vs. **diversification (variance reduction)**. Below is a comparison of different top quantile thresholds ($1\%$, $3\%$, $5\%$, $10\%$, and $20\%$) evaluated after liquidity slippage at a **$1.0\text{M}$ AUM scale**:
 
 | Portfolio Selection | Annualized Return (CAGR) | Annualized Volatility | Sharpe Ratio (4% RF) | Max Drawdown |
 | :--- | :---: | :---: | :---: | :---: |
-| Top 1% | -21.53% | 37.58% | -0.502 | -98.63% |
-| Top 3% | 1.93% | 20.87% | 0.016 | -63.53% |
-| Top 5% | 9.11% | 14.81% | 0.388 | -31.76% |
-| Top 10% | 13.31% | 12.26% | 0.752 | -16.70% |
-| Top 20% | 13.10% | 12.83% | 0.709 | -15.40% |
+| Top 1% | 47.25% | 64.23% | 0.814 | -72.92% |
+| Top 3% | 37.76% | 33.29% | 1.007 | -41.56% |
+| Top 5% | 31.16% | 28.81% | 0.947 | -41.08% |
+| Top 10% | 26.04% | 24.46% | 0.906 | -42.55% |
+| Top 20% | 21.41% | 21.46% | 0.825 | -40.27% |
 
 
 ### Quantile Selection Commentary:
@@ -41,65 +41,55 @@ Academic finance and quantitative trading dictate a fundamental trade-off: **sig
 ---
 
 ## 3. Rebalancing Tranches (Rolling Portfolios) & Capacity Curves
-Standard Month-End rebalancing induces high transaction costs because the entire portfolio is traded on a single day. At extreme scales ($\$10	ext{B}$ and $\$50	ext{B}$ AUM), the trades exceed the market's ADV, causing execution costs to destroy all Alpha.
+Standard Month-End rebalancing induces high transaction costs because the entire portfolio is traded on a single day. At extreme scales, the trades exceed the market's ADV, causing execution costs to destroy all Alpha.
 
 We implement **Rebalancing Tranches (Rolling Portfolios)** by splitting the portfolio into $N=21$ tranches, rebalancing 1/21st of the portfolio daily. This spreads execution trades across the month, slashing market impact costs:
 
 | AUM Size | CAGR (Standard) | Sharpe (Standard) | CAGR (Tranche) | Sharpe (Tranche) |
 | :--- | :---: | :---: | :---: | :---: |
-| $100K | 17.71% | 1.067 | 18.29% | 1.114 |
-| $500K | 17.55% | 1.055 | 18.23% | 1.110 |
-| $1M | 17.42% | 1.046 | 18.18% | 1.107 |
-| $5M | 16.89% | 1.008 | 17.99% | 1.093 |
-| $10M | 16.50% | 0.980 | 17.84% | 1.083 |
-| $50M | 14.84% | 0.857 | 17.23% | 1.040 |
-| $100M | 13.61% | 0.763 | 16.77% | 1.008 |
-| $500M | 8.49% | 0.377 | 14.86% | 0.872 |
-| $1.0B | 4.74% | 0.115 | 13.44% | 0.769 |
-| $10.0B | -21.04% | -0.877 | 3.51% | 0.016 |
-| $50.0B | -58.57% | -1.341 | -12.41% | -1.181 |
+| $100K | 26.51% | 0.921 | 26.85% | 0.941 |
+| $500K | 26.24% | 0.913 | 26.78% | 0.939 |
+| $1M | 26.04% | 0.906 | 26.73% | 0.937 |
+| $5M | 25.20% | 0.878 | 26.51% | 0.930 |
+| $10M | 24.57% | 0.857 | 26.34% | 0.924 |
+| $50M | 21.94% | 0.768 | 25.64% | 0.901 |
+| $100M | 19.99% | 0.700 | 25.11% | 0.884 |
+| $500M | 11.91% | 0.413 | 22.92% | 0.811 |
+| $1.0B | 6.01% | 0.209 | 21.30% | 0.756 |
 
-
-### Tranche Rebalancing Commentary:
-* **The Capacity Moat**: Spreading the execution daily allows the strategy to remain viable up to $\$50	ext{B}$ AUM, avoiding the severe performance decay seen under monthly block rebalancing.
-
----
-
-## 4. Sector Concentration & Neutralization
-Traditional momentum is prone to massive sector crowding (e.g., concentrated in tech during bubbles or energy during inflation spikes). The Herfindahl-Hirschman Index (HHI) measures the sector concentration of this raw momentum portfolio over time.
 
 ---
 
 
 ### 4. Regression Analysis: US Expansion & Tech Growth (2012-2015)
-### CAPM Regression (Vol-Targeted Returns) - US Expansion & Tech Growth (2012-2015) Results
+### CAPM Regression (Net Returns) - US Expansion & Tech Growth (2012-2015) Results
 
 | Factor / Predictor | Coefficient | t-Statistic | p-Value |
 | :--- | :---: | :---: | :---: |
-| Alpha (Intercept) | -0.000649 | -0.72 | 0.4745 |
-| Market Premium (MKT_RF) | 0.630776*** | 17.28 | 0.0000 |
+| Alpha (Intercept) | 0.000329. | 1.76 | 0.0791 |
+| Market Premium (MKT_RF) | 1.177100*** | 32.69 | 0.0000 |
 
 * **Observations**: 1,006
-* **R-Squared**: 0.0283 | **Adj. R-Squared**: 0.0273
-* **F-Statistic**: 298.73 (p-value: 8.5626e-59)
+* **R-Squared**: 0.7216 | **Adj. R-Squared**: 0.7214
+* **F-Statistic**: 1068.42 (p-value: 3.4881e-160)
 
 *Significance codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1*
 
 
-### Fama-French 5-Factor Regression (Vol-Targeted Returns) - US Expansion & Tech Growth (2012-2015) Results
+### Fama-French 5-Factor Regression (Net Returns) - US Expansion & Tech Growth (2012-2015) Results
 
 | Factor / Predictor | Coefficient | t-Statistic | p-Value |
 | :--- | :---: | :---: | :---: |
-| Alpha (Intercept) | -0.000630 | -0.68 | 0.4958 |
-| Market Premium (MKT_RF) | 0.590368*** | 8.53 | 0.0000 |
-| Size (SMB) | 0.324966*** | 5.31 | 0.0000 |
-| Value (HML) | -0.534291** | -2.60 | 0.0092 |
-| Profitability (RMW) | -0.475415*** | -6.18 | 0.0000 |
-| Investment (CMA) | 0.672803 | 1.26 | 0.2089 |
+| Alpha (Intercept) | 0.000395** | 2.78 | 0.0054 |
+| Market Premium (MKT_RF) | 1.049860*** | 46.67 | 0.0000 |
+| Size (SMB) | 0.585305*** | 16.88 | 0.0000 |
+| Value (HML) | -0.547801*** | -12.70 | 0.0000 |
+| Profitability (RMW) | -0.565362*** | -8.10 | 0.0000 |
+| Investment (CMA) | 0.146554* | 1.99 | 0.0461 |
 
 * **Observations**: 1,006
-* **R-Squared**: 0.0361 | **Adj. R-Squared**: 0.0313
-* **F-Statistic**: 190.66 (p-value: 1.1847e-142)
+* **R-Squared**: 0.8557 | **Adj. R-Squared**: 0.8549
+* **F-Statistic**: 663.84 (p-value: 1.1298e-314)
 
 *Significance codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1*
 
@@ -107,34 +97,34 @@ Traditional momentum is prone to massive sector crowding (e.g., concentrated in 
 ---
 
 ### 4. Regression Analysis: Rate Hikes & Pre-COVID Boom (2016-2019)
-### CAPM Regression (Vol-Targeted Returns) - Rate Hikes & Pre-COVID Boom (2016-2019) Results
+### CAPM Regression (Net Returns) - Rate Hikes & Pre-COVID Boom (2016-2019) Results
 
 | Factor / Predictor | Coefficient | t-Statistic | p-Value |
 | :--- | :---: | :---: | :---: |
-| Alpha (Intercept) | 0.000264 | 0.93 | 0.3528 |
-| Market Premium (MKT_RF) | 0.610825*** | 21.36 | 0.0000 |
+| Alpha (Intercept) | 0.000034 | 0.17 | 0.8637 |
+| Market Premium (MKT_RF) | 1.161446*** | 40.02 | 0.0000 |
 
 * **Observations**: 1,006
-* **R-Squared**: 0.2538 | **Adj. R-Squared**: 0.2530
-* **F-Statistic**: 456.13 (p-value: 9.9767e-84)
+* **R-Squared**: 0.7235 | **Adj. R-Squared**: 0.7232
+* **F-Statistic**: 1601.81 (p-value: 3.7476e-210)
 
 *Significance codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1*
 
 
-### Fama-French 5-Factor Regression (Vol-Targeted Returns) - Rate Hikes & Pre-COVID Boom (2016-2019) Results
+### Fama-French 5-Factor Regression (Net Returns) - Rate Hikes & Pre-COVID Boom (2016-2019) Results
 
 | Factor / Predictor | Coefficient | t-Statistic | p-Value |
 | :--- | :---: | :---: | :---: |
-| Alpha (Intercept) | 0.000312 | 1.20 | 0.2317 |
-| Market Premium (MKT_RF) | 0.552148*** | 20.67 | 0.0000 |
-| Size (SMB) | 0.405829*** | 6.50 | 0.0000 |
-| Value (HML) | -0.282211*** | -7.84 | 0.0000 |
-| Profitability (RMW) | -0.200333*** | -3.88 | 0.0001 |
-| Investment (CMA) | 0.214963** | 2.75 | 0.0060 |
+| Alpha (Intercept) | 0.000113 | 0.79 | 0.4267 |
+| Market Premium (MKT_RF) | 1.033449*** | 60.18 | 0.0000 |
+| Size (SMB) | 0.610127*** | 15.78 | 0.0000 |
+| Value (HML) | -0.474337*** | -12.63 | 0.0000 |
+| Profitability (RMW) | -0.319264*** | -6.95 | 0.0000 |
+| Investment (CMA) | 0.051804 | 0.97 | 0.3339 |
 
 * **Observations**: 1,006
-* **R-Squared**: 0.3130 | **Adj. R-Squared**: 0.3096
-* **F-Statistic**: 137.37 (p-value: 6.3442e-111)
+* **R-Squared**: 0.8456 | **Adj. R-Squared**: 0.8449
+* **F-Statistic**: 979.42 (p-value: 0.0000e+00)
 
 *Significance codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1*
 
@@ -142,34 +132,34 @@ Traditional momentum is prone to massive sector crowding (e.g., concentrated in 
 ---
 
 ### 4. Regression Analysis: Recent COVID & AI Era (2020-2026)
-### CAPM Regression (Vol-Targeted Returns) - Recent COVID & AI Era (2020-2026) Results
+### CAPM Regression (Net Returns) - Recent COVID & AI Era (2020-2026) Results
 
 | Factor / Predictor | Coefficient | t-Statistic | p-Value |
 | :--- | :---: | :---: | :---: |
-| Alpha (Intercept) | 0.000098 | 0.88 | 0.3801 |
-| Market Premium (MKT_RF) | 0.348972*** | 11.31 | 0.0000 |
+| Alpha (Intercept) | 0.000512* | 1.98 | 0.0482 |
+| Market Premium (MKT_RF) | 1.205508*** | 40.36 | 0.0000 |
 
 * **Observations**: 1,610
-* **R-Squared**: 0.5120 | **Adj. R-Squared**: 0.5117
-* **F-Statistic**: 128.02 (p-value: 1.3017e-28)
+* **R-Squared**: 0.6925 | **Adj. R-Squared**: 0.6923
+* **F-Statistic**: 1629.05 (p-value: 1.3858e-246)
 
 *Significance codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1*
 
 
-### Fama-French 5-Factor Regression (Vol-Targeted Returns) - Recent COVID & AI Era (2020-2026) Results
+### Fama-French 5-Factor Regression (Net Returns) - Recent COVID & AI Era (2020-2026) Results
 
 | Factor / Predictor | Coefficient | t-Statistic | p-Value |
 | :--- | :---: | :---: | :---: |
-| Alpha (Intercept) | 0.000179* | 2.28 | 0.0227 |
-| Market Premium (MKT_RF) | 0.289768*** | 13.14 | 0.0000 |
-| Size (SMB) | 0.252982*** | 14.93 | 0.0000 |
-| Value (HML) | -0.065033*** | -3.63 | 0.0003 |
-| Profitability (RMW) | -0.304865*** | -15.40 | 0.0000 |
-| Investment (CMA) | 0.104981*** | 4.05 | 0.0001 |
+| Alpha (Intercept) | 0.000699*** | 3.83 | 0.0001 |
+| Market Premium (MKT_RF) | 1.078122*** | 48.46 | 0.0000 |
+| Size (SMB) | 0.608477*** | 12.84 | 0.0000 |
+| Value (HML) | -0.130369** | -2.65 | 0.0081 |
+| Profitability (RMW) | -0.733774*** | -14.90 | 0.0000 |
+| Investment (CMA) | 0.372807*** | 4.95 | 0.0000 |
 
 * **Observations**: 1,610
-* **R-Squared**: 0.7406 | **Adj. R-Squared**: 0.7398
-* **F-Statistic**: 224.23 (p-value: 1.1176e-181)
+* **R-Squared**: 0.8420 | **Adj. R-Squared**: 0.8415
+* **F-Statistic**: 604.83 (p-value: 0.0000e+00)
 
 *Significance codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1*
 
@@ -177,34 +167,34 @@ Traditional momentum is prone to massive sector crowding (e.g., concentrated in 
 ---
 
 ### 4. Regression Analysis: Full Horizon (2012-2026)
-### CAPM Regression (Vol-Targeted Returns) - Full Horizon (2012-2026) Results
+### CAPM Regression (Net Returns) - Full Horizon (2012-2026) Results
 
 | Factor / Predictor | Coefficient | t-Statistic | p-Value |
 | :--- | :---: | :---: | :---: |
-| Alpha (Intercept) | -0.000029 | -0.11 | 0.9150 |
-| Market Premium (MKT_RF) | 0.438067*** | 14.03 | 0.0000 |
+| Alpha (Intercept) | 0.000324* | 2.35 | 0.0188 |
+| Market Premium (MKT_RF) | 1.193585*** | 56.79 | 0.0000 |
 
 * **Observations**: 3,622
-* **R-Squared**: 0.0719 | **Adj. R-Squared**: 0.0716
-* **F-Statistic**: 196.75 (p-value: 1.4483e-43)
+* **R-Squared**: 0.7015 | **Adj. R-Squared**: 0.7014
+* **F-Statistic**: 3225.53 (p-value: 0.0000e+00)
 
 *Significance codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1*
 
 
-### Fama-French 5-Factor Regression (Vol-Targeted Returns) - Full Horizon (2012-2026) Results
+### Fama-French 5-Factor Regression (Net Returns) - Full Horizon (2012-2026) Results
 
 | Factor / Predictor | Coefficient | t-Statistic | p-Value |
 | :--- | :---: | :---: | :---: |
-| Alpha (Intercept) | 0.000039 | 0.15 | 0.8831 |
-| Market Premium (MKT_RF) | 0.377571*** | 14.60 | 0.0000 |
-| Size (SMB) | 0.321373*** | 15.68 | 0.0000 |
-| Value (HML) | -0.137319*** | -5.81 | 0.0000 |
-| Profitability (RMW) | -0.257266*** | -11.85 | 0.0000 |
-| Investment (CMA) | 0.150912** | 2.96 | 0.0030 |
+| Alpha (Intercept) | 0.000468*** | 4.55 | 0.0000 |
+| Market Premium (MKT_RF) | 1.062608*** | 59.71 | 0.0000 |
+| Size (SMB) | 0.665555*** | 21.64 | 0.0000 |
+| Value (HML) | -0.240509*** | -6.35 | 0.0000 |
+| Profitability (RMW) | -0.568459*** | -14.22 | 0.0000 |
+| Investment (CMA) | 0.272083*** | 4.58 | 0.0000 |
 
 * **Observations**: 3,622
-* **R-Squared**: 0.0947 | **Adj. R-Squared**: 0.0934
-* **F-Statistic**: 243.83 (p-value: 5.3933e-225)
+* **R-Squared**: 0.8333 | **Adj. R-Squared**: 0.8331
+* **F-Statistic**: 948.00 (p-value: 0.0000e+00)
 
 *Significance codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1*
 
@@ -213,6 +203,7 @@ Traditional momentum is prone to massive sector crowding (e.g., concentrated in 
 
 
 ## 5. Summary of Key Academic Findings
-1. **Tranche Rebalancing Capacity**: Tranche rebalancing represents the single most effective capacity protection, maintaining a Sharpe of **0.50+** at **$50B AUM** where standard rebalancing fails.
-2. **Optimal Threshold**: The Top 10% threshold serves as the Sweet Spot for systematic momentum. Top 5% is dragged down by market impact, while Top 20% suffers from factor premium dilution.
-3. **Robust Alpha**: Intercepts (Alphas) calculated using Newey-West standard errors demonstrate that abnormal returns remain resilient to statistical adjustments, though capacity constraints begin to bite past $500M AUM.
+1. **Inverse Volatility Weighting**: Weighting selection candidates by inverse daily rolling volatility ($w_i \propto 1/\sigma_i$) successfully manages stock-specific risk concentrations directly in weights, replacing external volatility targeting.
+2. **Tranche Rebalancing Capacity**: Tranche rebalancing represents the single most effective capacity protection, maintaining a strong Sharpe ratio at larger scales.
+3. **Optimal Threshold**: The Top 10% threshold serves as the Sweet Spot for systematic momentum. Top 5% is dragged down by market impact, while Top 20% suffers from factor premium dilution.
+4. **Robust Alpha**: Intercepts (Alphas) calculated using Newey-West standard errors demonstrate that abnormal returns remain resilient to statistical adjustments.

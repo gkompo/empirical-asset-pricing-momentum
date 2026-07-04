@@ -29,13 +29,13 @@ def apply_transaction_costs(weights: pd.DataFrame,
 
         # Lagged rolling metrics to avoid lookahead bias
         daily_vol = returns.rolling(20).std().shift(1)
-        adv_shares = volumes.rolling(20).mean().shift(1)
+        adv_shares = volumes.rolling(20).mean().shift(1).clip(lower=1000.0)
 
-        # Estimate trade size in shares
-        trade_shares = trade_weights * aum / (prices + 1e-8)
+        # Estimate trade size in shares (using price floor of $1.00 to prevent penny-stock division spikes)
+        trade_shares = trade_weights * aum / (prices.clip(lower=1.0) + 1e-8)
 
         # Market impact term (gamma * vol * sqrt(trade_shares / ADV))
-        ratio = trade_shares / (adv_shares.replace(0, np.nan) + 1e-8)
+        ratio = trade_shares / (adv_shares + 1e-8)
         ratio = ratio.fillna(0.0).clip(lower=0.0)
         market_impact = gamma * daily_vol.fillna(0.0) * np.sqrt(ratio)
 
