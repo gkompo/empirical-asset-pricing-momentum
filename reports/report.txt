@@ -28,26 +28,30 @@ This study implements a **Long-Only Inverse Volatility Weighted Raw Momentum Por
 > **Physical Market Friction**: Raw inverse volatility weighting contains a hidden trap! Illiquid shell companies with zero trading volume exhibit artificial "flatline" prices, showing $0.0$ historical volatility. Without an active volatility floor (set here to $0.005$ daily), the allocator blindly allocates too much capital to an untradeable stock, triggering infinite market impact and instant simulation bankruptcy. Capping volatility at $0.005$ and filtering out dead listings completely saves the portfolio!
 
 ### Multi-Period PnL Growth Charts
-````carousel
+#### Full Horizon (2012-2026)
 ![Full Horizon General PnL](../results/figures/equity_curve_general_full_horizon_2012-2026.png)
-<!-- slide -->
+
+#### Recent COVID & AI Era (2020-2026)
 ![Recent COVID & AI General PnL](../results/figures/equity_curve_general_recent_covid__ai_era_2020-2026.png)
-<!-- slide -->
+
+#### Rate Hikes & Pre-COVID Boom (2016-2019)
 ![Rate Hikes General PnL](../results/figures/equity_curve_general_rate_hikes__pre-covid_boom_2016-2019.png)
-<!-- slide -->
+
+#### US Expansion & Tech Growth (2012-2015)
 ![US Expansion General PnL](../results/figures/equity_curve_general_us_expansion__tech_growth_2012-2015.png)
-````
 
 ### Futures Hedging Impact Analysis Charts
-````carousel
+#### Full Horizon (2012-2026)
 ![Full Horizon Hedging PnL](../results/figures/equity_curve_hedging_full_horizon_2012-2026.png)
-<!-- slide -->
+
+#### Recent COVID & AI Era (2020-2026)
 ![Recent COVID & AI Hedging PnL](../results/figures/equity_curve_hedging_recent_covid__ai_era_2020-2026.png)
-<!-- slide -->
+
+#### Rate Hikes & Pre-COVID Boom (2016-2019)
 ![Rate Hikes Hedging PnL](../results/figures/equity_curve_hedging_rate_hikes__pre-covid_boom_2016-2019.png)
-<!-- slide -->
+
+#### US Expansion & Tech Growth (2012-2015)
 ![US Expansion Hedging PnL](../results/figures/equity_curve_hedging_us_expansion__tech_growth_2012-2015.png)
-````
 
 ### Commentary on Futures Hedging & Drawdown Minimization:
 1. **The Beta Vulnerability**: In standard unhedged long-only momentum portfolios, drawdowns are heavily driven by systematic market beta risk. In down markets (e.g., the 2022 bear market), even strong momentum stocks experience sharp declines.

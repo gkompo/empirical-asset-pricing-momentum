@@ -1,6 +1,6 @@
 # Walkthrough - Student Research on Systematic Momentum
 
-This research project evaluates a **Long-Only Inverse Volatility Weighted Momentum Strategy** on the Russell 3000 universe. The project models transaction costs, trend-following futures hedging, portfolio selection quantiles, and execution routing capacity, analyzed like a master's thesis or undergraduate research paper.
+This research project evaluates a **Long-Only Inverse Volatility Weighted Momentum Strategy** on the Russell 3000 universe. The project models transaction costs, trend-following futures hedging, portfolio selection quantiles, and execution routing capacity.
 
 ---
 
@@ -35,26 +35,32 @@ Using Fama-French daily benchmarks to ensure statistical alignment, we evaluated
 * **Trend-Following Futures Hedging**: shorts S&P 500 Index Futures when the index is below its 200-day simple moving average (SMA), in proportion to the rolling 60-day portfolio beta, successfully minimizing market-wide drawdowns.
 
 #### Multi-Period PnL Growth Charts
-````carousel
+##### Full Horizon General PnL
 ![Full Horizon General PnL](results/figures/equity_curve_general_full_horizon_2012-2026.png)
-<!-- slide -->
+
+##### Recent COVID & AI General PnL
 ![Recent COVID & AI General PnL](results/figures/equity_curve_general_recent_covid__ai_era_2020-2026.png)
-<!-- slide -->
+
+##### Rate Hikes General PnL
 ![Rate Hikes General PnL](results/figures/equity_curve_general_rate_hikes__pre-covid_boom_2016-2019.png)
-<!-- slide -->
+
+##### US Expansion General PnL
 ![US Expansion General PnL](results/figures/equity_curve_general_us_expansion__tech_growth_2012-2015.png)
-````
+
 
 #### Futures Hedging Impact Analysis Charts
-````carousel
+##### Full Horizon Hedging PnL
 ![Full Horizon Hedging PnL](results/figures/equity_curve_hedging_full_horizon_2012-2026.png)
-<!-- slide -->
+
+##### Recent COVID & AI Hedging PnL
 ![Recent COVID & AI Hedging PnL](results/figures/equity_curve_hedging_recent_covid__ai_era_2020-2026.png)
-<!-- slide -->
+
+##### Rate Hikes Hedging PnL
 ![Rate Hikes Hedging PnL](results/figures/equity_curve_hedging_rate_hikes__pre-covid_boom_2016-2019.png)
-<!-- slide -->
+
+##### US Expansion Hedging PnL
 ![US Expansion Hedging PnL](results/figures/equity_curve_hedging_us_expansion__tech_growth_2012-2015.png)
-````
+
 
 ---
 
