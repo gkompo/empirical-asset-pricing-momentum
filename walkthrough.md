@@ -1,6 +1,6 @@
-# Walkthrough - Institutional Systematic Asset Pricing Platform
+# Walkthrough - Student Research on Systematic Momentum
 
-We have successfully rebuilt the systematic platform to use **Inverse Volatility Weighting** for portfolio stock weights, removed the volatility targeting scaling mechanism, disabled sector neutralization, set the portfolio selection (concentration vs. diversification) comparison AUM scale to **$1M**, removed all sector concentration (HHI) calculations, and re-run all backtests to output updated figures and metrics.
+This research project evaluates a **Long-Only Inverse Volatility Weighted Momentum Strategy** on the Russell 3000 universe. The project models transaction costs, trend-following futures hedging, portfolio selection quantiles, and execution routing capacity, analyzed like a master's thesis or undergraduate research paper.
 
 ---
 
@@ -12,13 +12,13 @@ The strategy was pioneered in the 1970s and 1980s by **Richard Driehaus**, widel
 
 For decades, the mainstream academic community dismissed Driehaus's success as luck or uncompensated risk, clinging to the Efficient Market Hypothesis. However, in 1993, economists **Narasimhan Jegadeesh and Sheridan Titman** published their seminal paper, *"Returns to Buying Winners and Selling Losers: Implications for Stock Market Efficiency."* They empirically proved that stock returns exhibit trend persistence over 3 to 12-month lookback horizons, and that a long-short momentum portfolio generated highly significant, persistent abnormal returns (Alphas) that could not be explained by the CAPM market beta. 
 
-This platform bridges the gap between Driehaus's practitioner intuition and Jegadeesh & Titman's asset pricing rigor. We implement an **Inverse Volatility Weighted Momentum Strategy** on the Russell 3000 universe, incorporating non-linear execution costs, trend-following futures hedging, and multi-period regressions.
+This study bridges the gap between Driehaus's practitioner intuition and Jegadeesh & Titman's asset pricing rigor. We implement an **Inverse Volatility Weighted Momentum Strategy** on the Russell 3000 universe, incorporating non-linear execution costs, trend-following futures hedging, and multi-period regressions.
 
 ---
 
-## 1. Performance Summary (Sub-Periods & Futures Hedging)
+## 1. Strategy Performance Summary (Sub-Periods & Futures Hedging)
 
-Using Fama-French daily benchmarks to ensure statistical and economic alignment, we evaluated the **Long-Only Inverse Volatility Weighted Raw Momentum Strategy** across four macro market windows, comparing unhedged vs. futures-hedged versions for Gross, Net, and Tranche-Rebalanced portfolios at a **$1M AUM scale**:
+Using Fama-French daily benchmarks to ensure statistical alignment, we evaluated the strategy across four sub-periods, comparing unhedged vs. futures-hedged versions for Gross, Net, and Tranche-Rebalanced portfolios at a **$1M AUM scale**:
 
 | Period / Window | CAGR (Gross) | CAGR (Gross Hedged) | CAGR (Net) | CAGR (Net Hedged) | CAGR (Tranche) | Sharpe (Net Hedged) | Sharpe (Tranche) | MaxDD (Net Hedged) | DSR | S&P500 Sharpe |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -72,8 +72,8 @@ We simulated different selection thresholds for the raw momentum basket at a **$
 
 * **Optimal Balanced Selection**: At $1M AUM, the **Top 3%** selection achieves the highest Sharpe ratio (**1.007**) and a stellar CAGR of **37.76%**. At this AUM scale, execution costs are low enough to make the highly concentrated factor premium viable.
 
-#### Selection Quantiles PnL Comparison
-![Quantile Comparison](/C:/Users/USER/.gemini/antigravity/brain/6a51fe4b-c7c3-42f7-b5a1-3aff0392ecaa/quantile_comparison.png)
+#### Selection Quantiles PnL Comparison Plot
+![Selection Quantiles PnL Comparison](/C:/Users/USER/.gemini/antigravity/brain/6a51fe4b-c7c3-42f7-b5a1-3aff0392ecaa/quantile_comparison.png)
 
 ---
 
@@ -98,23 +98,41 @@ We compared the execution decay of standard month-end block rebalancing (Standar
 
 * **Tranche Capacity Edge**: Tranche rebalancing combined with Smart Order Router (SOR) algorithms and dark pool crossing completely eliminates execution-related decay. At **$50B AUM**, where standard month-end rebalancing is bankrupt (-71.02% CAGR), the **Tranche Algorithmic/SOR** strategy retains a highly positive and viable **17.54% CAGR** and a **0.625 Sharpe ratio**!
 
-#### Slippage Capacity Curve Comparison
-![Capacity Decay](/C:/Users/USER/.gemini/antigravity/brain/6a51fe4b-c7c3-42f7-b5a1-3aff0392ecaa/capacity_decay.png)
+#### Slippage Capacity Curve Comparison Plot
+![Slippage Capacity Decay Comparison](/C:/Users/USER/.gemini/antigravity/brain/6a51fe4b-c7c3-42f7-b5a1-3aff0392ecaa/capacity_decay.png)
 
 ---
 
-## 4. Institutional Routing Strategies to Minimize Slippage (AUM $100M - $50B)
+## 4. Simulating Large-Scale Execution and Routing Strategies
 
-Executing block-size momentum trades directly onto lit exchanges (such as NYSE or NASDAQ) triggers massive adverse selection and market impact, particularly at scales between **$100M and $50B AUM**. To mitigate this decay, the execution pipeline should be routed via a Smart Order Router (SOR) utilizing the following institutional mechanisms:
-* **Dark Pool Crossing & Block Networks ($100M - $1B AUM)**: Orders should be routed to dark crossing networks (e.g., Liquidnet, Instinet BlockMatch, or ITG Posit) to match blocks internally. This prints trades to the tape only after execution, bypassing the public limit order books and preventing front-running. Realistically, we model a **40% crossing rate** where crossed shares face zero market impact.
-* **Volume/Time-Scheduled Algorithmic Routing ($1B - $10B AUM)**: Order slicing must be scheduled using Time-Weighted Average Price (TWAP) or Volume-Weighted Average Price (VWAP) algorithms. The execution rate should be dynamically throttled to keep the Participation Rate (POV) strictly under **5% of the security's rolling 20-day Average Daily Volume (ADV)**, minimizing market signature. Realistically, this reduces the effective market impact coefficient $\gamma$ from $0.5$ to $0.2$.
-* **Internalization & OTC Liquidity Desks ($10B - $50B AUM)**: At mega-cap scale, the portfolio's rebalancing flow should be crossed internally against secondary strategies (such as mean-reversion or value portfolios). Any residual flow is negotiated directly with institutional market makers via bilateral over-the-counter (OTC) block desks, avoiding public exchange books completely.
+Executing large block-size trades directly onto lit exchanges would trigger massive market impact in practice, particularly at modeled scales between **$100M and $50B AUM**. In our simulations, we evaluate how routing via a Smart Order Router (SOR) with the following mechanisms reduces this decay:
+* **Dark Pool Crossing & Block Networks ($100M - $1B AUM)**: Orders are routed to dark crossing networks (e.g., Liquidnet, Instinet BlockMatch, or ITG Posit) to match blocks internally. This prints trades to the tape only after execution, bypassing the public limit order books and preventing front-running. Realistically, we model a **40% crossing rate** where crossed shares face zero market impact.
+* **Volume/Time-Scheduled Algorithmic Routing ($1B - $10B AUM)**: Order slicing is scheduled using Time-Weighted Average Price (TWAP) or Volume-Weighted Average Price (VWAP) algorithms. The execution rate is dynamically throttled to keep the Participation Rate (POV) strictly under **5% of the security's rolling 20-day Average Daily Volume (ADV)**, minimizing market signature. Realistically, this reduces the effective market impact coefficient $\gamma$ from $0.5$ to $0.2$.
+* **Internalization & OTC Liquidity Desks ($10B - $50B AUM)**: At mega-cap scale, the portfolio's rebalancing flow is crossed internally against secondary strategies (such as mean-reversion or value portfolios). Any residual flow is negotiated directly with institutional market makers via bilateral over-the-counter (OTC) block desks, avoiding public exchange books completely.
 
 ---
 
-## 4.5 Executive Regression Synthesis & The Factor Picture
+## 4.5 Academic Regression Synthesis & The Factor Picture
 Based on the multi-period OLS regressions with Newey-West HAC robust standard errors, we can synthesize the following structural factor properties of the Inverse Volatility Weighted Momentum Strategy:
 1. **High-Beta Tilt**: The strategy exhibits a CAPM beta of **1.16 to 1.20** across sub-periods. Stripped to its core in the 5-Factor regression, beta remains highly significant at **1.05 to 1.07**. This indicates that momentum naturally selects high-beta growth stocks that outperform during equity expansions.
 2. **Small-Cap Preference (Size Premium)**: The size exposure ($SMB$) is consistently positive and statistically massive (**0.58 to 0.66**, with t-statistics above **12.8**). This confirms that momentum acceleration is highly pronounced in the small/mid-cap segments of the Russell 3000 cross-section.
 3. **Anti-Value and Growth Tilt**: The value coefficient ($HML$) is strongly negative (**-0.24 to -0.54**), typical of growth-biased portfolios buying expensive winners. The profitability tilt ($RMW$) is also negative, reflecting that momentum targets capital-reinvesting growth firms rather than cash-cow businesses.
 4. **Enhanced Alpha Intercept**: On the Full Horizon, adjusting for size, value, and profitability factors causes the daily Alpha to rise from **3.24 bps** (CAPM) to **4.68 bps** (Fama-French 5-Factor), with the t-statistic jumping from **2.35 to 4.55** (p-value: 0.0000). This confirms that stripping out factor style tilts unmasks a highly robust, statistically undeniable momentum abnormal premium of **~11.79% annualized**.
+
+---
+
+## 5. Limitations of the Backtest & Key Empirical Biases
+While our backtest results demonstrate high statistical significance, systematic trading models are fundamentally bounded by empirical limitations and statistical biases. To convert this research into a live trading system, the following limitations must be accounted for:
+
+1. **Survivorship Bias**:
+   * *Problem*: The historical stock universe used in this backtest is drawn from currently active listings. Companies that went bankrupt, merged, or were delisted due to financial distress between 2012 and 2026 are not present in the dataset.
+   * *Impact*: Since momentum strategies naturally seek out high-performing listings, they are prone to capturing stocks that eventually collapse. By excluding historically failed companies, the backtest returns are artificially biased upward.
+2. **Lookahead Bias**:
+   * *Mitigation*: We mitigate this bias by applying a strict **1-day lag** on all portfolio rebalancing decisions (calculating weights on the close of day $t-1$ and executing on the close of day $t$).
+   * *Residual Risk*: In corporate action adjustments (splits, dividends), backadjusted prices are sometimes applied retroactively, introducing minor lookahead leaking.
+3. **Liquidity & Spread Regime Shifts**:
+   * *Problem*: Our market impact model ($\text{{slippage}} = \text{{spread}} + \gamma \sigma \sqrt{V/ADV}$) assumes a static bid-ask spread of **5.0 bps** and stable volume relationships.
+   * *Impact*: During liquidity crises (such as the March 2020 COVID crash), bid-ask spreads for small-cap names can spike to **100+ bps**, and trading volume dries up entirely. The actual transaction costs incurred during these regimes would exceed our model's estimates, eroding net returns.
+4. **Selection Bias & Multiple Testing (Data Snooping)**:
+   * *Problem*: Evaluating multiple portfolio selections (1%, 3%, 5%, 10%, 20%) and highlighting the **Top 3%** as the "optimal" Sweet Spot introduces selection bias.
+   * *Impact*: The Top 3% parameters are overfitted to the historical sample. In live execution, the strategy's Sharpe ratio may mean-revert toward the baseline Top 10% or Top 20% average.
