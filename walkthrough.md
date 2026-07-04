@@ -36,24 +36,24 @@ Using Fama-French daily benchmarks to ensure statistical alignment, we evaluated
 
 #### Multi-Period PnL Growth Charts
 ````carousel
-![Full Horizon General PnL](/C:/Users/USER/.gemini/antigravity/brain/6a51fe4b-c7c3-42f7-b5a1-3aff0392ecaa/equity_curve_general_full_horizon_2012-2026.png)
+![Full Horizon General PnL](results/figures/equity_curve_general_full_horizon_2012-2026.png)
 <!-- slide -->
-![Recent COVID & AI General PnL](/C:/Users/USER/.gemini/antigravity/brain/6a51fe4b-c7c3-42f7-b5a1-3aff0392ecaa/equity_curve_general_recent_covid__ai_era_2020-2026.png)
+![Recent COVID & AI General PnL](results/figures/equity_curve_general_recent_covid__ai_era_2020-2026.png)
 <!-- slide -->
-![Rate Hikes General PnL](/C:/Users/USER/.gemini/antigravity/brain/6a51fe4b-c7c3-42f7-b5a1-3aff0392ecaa/equity_curve_general_rate_hikes__pre-covid_boom_2016-2019.png)
+![Rate Hikes General PnL](results/figures/equity_curve_general_rate_hikes__pre-covid_boom_2016-2019.png)
 <!-- slide -->
-![US Expansion General PnL](/C:/Users/USER/.gemini/antigravity/brain/6a51fe4b-c7c3-42f7-b5a1-3aff0392ecaa/equity_curve_general_us_expansion__tech_growth_2012-2015.png)
+![US Expansion General PnL](results/figures/equity_curve_general_us_expansion__tech_growth_2012-2015.png)
 ````
 
 #### Futures Hedging Impact Analysis Charts
 ````carousel
-![Full Horizon Hedging PnL](/C:/Users/USER/.gemini/antigravity/brain/6a51fe4b-c7c3-42f7-b5a1-3aff0392ecaa/equity_curve_hedging_full_horizon_2012-2026.png)
+![Full Horizon Hedging PnL](results/figures/equity_curve_hedging_full_horizon_2012-2026.png)
 <!-- slide -->
-![Recent COVID & AI Hedging PnL](/C:/Users/USER/.gemini/antigravity/brain/6a51fe4b-c7c3-42f7-b5a1-3aff0392ecaa/equity_curve_hedging_recent_covid__ai_era_2020-2026.png)
+![Recent COVID & AI Hedging PnL](results/figures/equity_curve_hedging_recent_covid__ai_era_2020-2026.png)
 <!-- slide -->
-![Rate Hikes Hedging PnL](/C:/Users/USER/.gemini/antigravity/brain/6a51fe4b-c7c3-42f7-b5a1-3aff0392ecaa/equity_curve_hedging_rate_hikes__pre-covid_boom_2016-2019.png)
+![Rate Hikes Hedging PnL](results/figures/equity_curve_hedging_rate_hikes__pre-covid_boom_2016-2019.png)
 <!-- slide -->
-![US Expansion Hedging PnL](/C:/Users/USER/.gemini/antigravity/brain/6a51fe4b-c7c3-42f7-b5a1-3aff0392ecaa/equity_curve_hedging_us_expansion__tech_growth_2012-2015.png)
+![US Expansion Hedging PnL](results/figures/equity_curve_hedging_us_expansion__tech_growth_2012-2015.png)
 ````
 
 ---
@@ -73,7 +73,7 @@ We simulated different selection thresholds for the raw momentum basket at a **$
 * **Optimal Balanced Selection**: At $1M AUM, the **Top 3%** selection achieves the highest Sharpe ratio (**1.007**) and a stellar CAGR of **37.76%**. At this AUM scale, execution costs are low enough to make the highly concentrated factor premium viable.
 
 #### Selection Quantiles PnL Comparison Plot
-![Selection Quantiles PnL Comparison](/C:/Users/USER/.gemini/antigravity/brain/6a51fe4b-c7c3-42f7-b5a1-3aff0392ecaa/quantile_comparison.png)
+![Selection Quantiles PnL Comparison](results/figures/quantile_comparison.png)
 
 ---
 
@@ -99,7 +99,7 @@ We compared the execution decay of standard month-end block rebalancing (Standar
 * **Tranche Capacity Edge**: Tranche rebalancing combined with Smart Order Router (SOR) algorithms and dark pool crossing completely eliminates execution-related decay. At **$50B AUM**, where standard month-end rebalancing is bankrupt (-71.02% CAGR), the **Tranche Algorithmic/SOR** strategy retains a highly positive and viable **17.54% CAGR** and a **0.625 Sharpe ratio**!
 
 #### Slippage Capacity Curve Comparison Plot
-![Slippage Capacity Decay Comparison](/C:/Users/USER/.gemini/antigravity/brain/6a51fe4b-c7c3-42f7-b5a1-3aff0392ecaa/capacity_decay.png)
+![Slippage Capacity Decay Comparison](results/figures/capacity_decay.png)
 
 ---
 

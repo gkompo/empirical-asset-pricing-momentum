@@ -597,11 +597,12 @@ While our backtest results demonstrate high statistical significance, systematic
 4. **Robust Alpha**: Intercepts (Alphas) calculated using Newey-West standard errors demonstrate that abnormal returns remain resilient to statistical adjustments.
 """
 
+report_markdown_relative = report_markdown.replace("/C:/Users/USER/.gemini/antigravity/brain/6a51fe4b-c7c3-42f7-b5a1-3aff0392ecaa/", "../results/figures/")
 with open("reports/report.md", "w") as f:
-    f.write(report_markdown)
+    f.write(report_markdown_relative)
 
 with open("reports/report.txt", "w") as f:
-    f.write(report_markdown)
+    f.write(report_markdown_relative)
 
 # Output summary table to console
 print("\n==========================================================================================")

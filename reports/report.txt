@@ -29,24 +29,24 @@ This study implements a **Long-Only Inverse Volatility Weighted Raw Momentum Por
 
 ### Multi-Period PnL Growth Charts
 ````carousel
-![Full Horizon General PnL](/C:/Users/USER/.gemini/antigravity/brain/6a51fe4b-c7c3-42f7-b5a1-3aff0392ecaa/equity_curve_general_full_horizon_2012-2026.png)
+![Full Horizon General PnL](../results/figures/equity_curve_general_full_horizon_2012-2026.png)
 <!-- slide -->
-![Recent COVID & AI General PnL](/C:/Users/USER/.gemini/antigravity/brain/6a51fe4b-c7c3-42f7-b5a1-3aff0392ecaa/equity_curve_general_recent_covid__ai_era_2020-2026.png)
+![Recent COVID & AI General PnL](../results/figures/equity_curve_general_recent_covid__ai_era_2020-2026.png)
 <!-- slide -->
-![Rate Hikes General PnL](/C:/Users/USER/.gemini/antigravity/brain/6a51fe4b-c7c3-42f7-b5a1-3aff0392ecaa/equity_curve_general_rate_hikes__pre-covid_boom_2016-2019.png)
+![Rate Hikes General PnL](../results/figures/equity_curve_general_rate_hikes__pre-covid_boom_2016-2019.png)
 <!-- slide -->
-![US Expansion General PnL](/C:/Users/USER/.gemini/antigravity/brain/6a51fe4b-c7c3-42f7-b5a1-3aff0392ecaa/equity_curve_general_us_expansion__tech_growth_2012-2015.png)
+![US Expansion General PnL](../results/figures/equity_curve_general_us_expansion__tech_growth_2012-2015.png)
 ````
 
 ### Futures Hedging Impact Analysis Charts
 ````carousel
-![Full Horizon Hedging PnL](/C:/Users/USER/.gemini/antigravity/brain/6a51fe4b-c7c3-42f7-b5a1-3aff0392ecaa/equity_curve_hedging_full_horizon_2012-2026.png)
+![Full Horizon Hedging PnL](../results/figures/equity_curve_hedging_full_horizon_2012-2026.png)
 <!-- slide -->
-![Recent COVID & AI Hedging PnL](/C:/Users/USER/.gemini/antigravity/brain/6a51fe4b-c7c3-42f7-b5a1-3aff0392ecaa/equity_curve_hedging_recent_covid__ai_era_2020-2026.png)
+![Recent COVID & AI Hedging PnL](../results/figures/equity_curve_hedging_recent_covid__ai_era_2020-2026.png)
 <!-- slide -->
-![Rate Hikes Hedging PnL](/C:/Users/USER/.gemini/antigravity/brain/6a51fe4b-c7c3-42f7-b5a1-3aff0392ecaa/equity_curve_hedging_rate_hikes__pre-covid_boom_2016-2019.png)
+![Rate Hikes Hedging PnL](../results/figures/equity_curve_hedging_rate_hikes__pre-covid_boom_2016-2019.png)
 <!-- slide -->
-![US Expansion Hedging PnL](/C:/Users/USER/.gemini/antigravity/brain/6a51fe4b-c7c3-42f7-b5a1-3aff0392ecaa/equity_curve_hedging_us_expansion__tech_growth_2012-2015.png)
+![US Expansion Hedging PnL](../results/figures/equity_curve_hedging_us_expansion__tech_growth_2012-2015.png)
 ````
 
 ### Commentary on Futures Hedging & Drawdown Minimization:
@@ -70,7 +70,7 @@ Academic finance dictates a fundamental trade-off: **signal strength (concentrat
 
 
 ### Quantile Selection Comparison Plot
-![Selection Quantiles PnL Comparison](/C:/Users/USER/.gemini/antigravity/brain/6a51fe4b-c7c3-42f7-b5a1-3aff0392ecaa/quantile_comparison.png)
+![Selection Quantiles PnL Comparison](../results/figures/quantile_comparison.png)
 
 > [!NOTE]
 > **Signal vs. Noise!**: The Top 3% portfolio selection is the ultimate sweet spot for a $1.0M AUM fund, yielding a **1.007 Sharpe**. At this scale, the transaction cost footprint is small enough to capture the raw, undiluted momentum alpha. At larger scales, this concentration collapses under its own weight!
@@ -104,7 +104,7 @@ We implement **Rebalancing Tranches (Rolling Portfolios)** by splitting the port
 
 
 ### Slippage Capacity Curve Comparison Plot
-![Slippage Capacity Decay Comparison](/C:/Users/USER/.gemini/antigravity/brain/6a51fe4b-c7c3-42f7-b5a1-3aff0392ecaa/capacity_decay.png)
+![Slippage Capacity Decay Comparison](../results/figures/capacity_decay.png)
 
 > [!IMPORTANT]
 > **The Physics of Capital Flow!**: Spreading trades over 21 rolling daily tranches is a standard academic model to simulate how transaction costs affect large-scale portfolios. By trading only 1/21st of the book per day, the simulation models how a large fund spreads volume to reduce market impact.
