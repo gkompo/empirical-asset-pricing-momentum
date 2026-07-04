@@ -13,6 +13,9 @@ This platform implements a **Long-Only Inverse Volatility Weighted Raw Momentum 
 
 * **Deflated Sharpe Ratio (DSR) Probability**: The DSR measures the probability that the estimated Sharpe ratio is statistically significant after correcting for sample length, skewness, and fat-tailed kurtosis relative to the benchmark. A DSR probability above 95% indicates genuine statistical significance.
 
+> [!WARNING]
+> **Physical Market Friction**: Raw inverse volatility weighting contains a hidden trap! Illiquid shell companies with zero trading volume exhibit artificial "flatline" prices, showing $0.0$ historical volatility. Without an active volatility floor (set here to $0.005$ daily), the allocator blindly dumps 99% of its capital into an untradeable stock, triggering infinite market impact and instant simulation bankruptcy. Capping volatility at $0.005$ and filtering out dead listings completely saves the portfolio!
+
 ### Commentary on Futures Hedging & Drawdown Minimization:
 1. **The Beta Vulnerability**: In standard unhedged long-only momentum portfolios, drawdowns are heavily driven by systematic market beta risk. In down markets (e.g., the 2022 bear market), even strong momentum stocks experience sharp declines.
 2. **Trend-Following Futures Hedging**: We implement a dynamic hedge using S&P 500 Index Futures. When the index price falls below its 200-day simple moving average (SMA), the strategy shorts index futures in proportion to its rolling 60-day portfolio beta:
@@ -32,6 +35,9 @@ Academic finance dictates a fundamental trade-off: **signal strength (concentrat
 | Top 10% | 26.04% | 24.46% | 0.906 | -42.55% |
 | Top 20% | 21.41% | 21.46% | 0.825 | -40.27% |
 
+
+> [!NOTE]
+> **Signal vs. Noise!**: The Top 3% portfolio selection is the ultimate sweet spot for a $1.0M AUM fund, yielding a **1.007 Sharpe**. At this scale, the transaction cost footprint is small enough to capture the raw, undiluted momentum alpha. At larger scales, this concentration collapses under its own weight!
 
 ### Quantile Selection Commentary:
 1. **Top 1%**: Isolates the strongest momentum winners. Although it yields a high CAGR of 47.25%, it exhibits high volatility (64.23%) and a large maximum drawdown (-72.92%).
@@ -57,6 +63,9 @@ We implement **Rebalancing Tranches (Rolling Portfolios)** by splitting the port
 | $500M | 11.91% | 0.413 | 22.92% | 0.811 |
 | $1.0B | 6.01% | 0.209 | 21.30% | 0.756 |
 
+
+> [!IMPORTANT]
+> **The Physics of Capital Flow!**: Spreading trades over 21 rolling daily tranches is not a mathematical luxury—it is the breathing lung of a multi-billion dollar fund. By trading only 1/21st of the book per day, the executor avoids pushing massive block orders through the narrow throat of lit exchange liquidity.
 
 ---
 

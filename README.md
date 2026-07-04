@@ -26,37 +26,33 @@ graph TD
 
 ---
 
-## Models Implemented
+## Core System Dynamics
 
-### 1. Asset Pricing Models (Newey-West HAC)
-Daily portfolio returns are regressed against Kenneth French's factors. Residual standard errors are corrected using **Newey-West HAC (Heteroskedasticity and Autocorrelation Consistent)** robust errors (5 lags) to guarantee valid statistical inference:
-* **CAPM Regression**: Regressing strategy excess returns against the Market Premium ($MKT\_RF$).
-* **Fama-French 5-Factor Regression**: Regressing strategy excess returns against:
-  - Market Premium ($MKT\_RF$)
-  - Size ($SMB$)
-  - Value ($HML$)
-  - Profitability ($RMW$)
-  - Investment ($CMA$)
+### 1. Systematic Weights Allocation (Inverse Volatility Weighting)
+Stocks selected in the top momentum ranking bucket (winners) are weighted cross-sectionally in inverse proportion to their rolling historical daily volatility:
+$$w_{i,t} = \frac{1/\sigma_{i,t}}{\sum_{j} 1/\sigma_{j,t}}$$
+Where $\sigma_{i,t}$ is the rolling 20-day standard deviation of daily returns.
 
-### 2. Systematic Strategy (Long-Only Inverse Volatility Weighted Momentum)
-* **Momentum Signal**: Stocks are ranked daily by their 252-day historical rolling mean return.
-* **Portfolio Construction**: Portfolio selects the top winners (Long-Only) and weights them in inverse proportion to their rolling volatility:
-  $$w_{i,t} = \frac{1/\sigma_{i,t}}{\sum_{j} 1/\sigma_{j,t}}$$
-  Where $\sigma_{i,t}$ is the rolling 20-day standard deviation of daily returns.
-* **Rebalancing**: Monthly month-end rebalancing executed with a **1-day trade implementation lag** to prevent look-ahead bias.
+> [!WARNING]
+> **Physical Market Friction!**
+> Raw inverse volatility weighting contains a hidden mathematical trap: illiquid, zero-volume shell companies exhibit "flatline" prices, showing an artificial volatility of $0.0$. Without an active risk floor (set here to **0.005 daily volatility**), the allocator dumps 99% of capital into these untradeable listings, leading to immediate simulation bankruptcy! We cap volatilities at 0.005 and exclude flatline stocks to keep the strategy physically tradeable.
 
-### 3. Rebalancing Tranches (Rolling Portfolios)
-Standard Month-End rebalancing induces high transaction costs because the entire portfolio is traded on a single day. At extreme scales, the trades exceed the market's ADV, causing execution costs to destroy all Alpha.
-* We implement **Rebalancing Tranches (Rolling Portfolios)** by splitting the portfolio into $N=21$ tranches, rebalancing 1/21st of the portfolio daily. This spreads execution trades across the month, slashing market impact costs:
-  $$\text{Tranche Weights} = \frac{1}{21}\sum_{k=0}^{20} W_{t-k}$$
+### 2. Spreading the Rebalancing Pressure (Tranches)
+Rebalancing the entire book on the last day of the month triggers a massive liquidity bottleneck. For a multi-million dollar fund, the order sizes exceed the Average Daily Volume (ADV), resulting in prohibitive execution slippage:
 
-### 4. Marcos López de Prado's Deflated Sharpe Ratio (DSR)
-The DSR measures the probability that the estimated Sharpe ratio is statistically significant after correcting for sample length, skewness, and fat-tailed kurtosis relative to the benchmark. A DSR probability above 95% indicates genuine statistical significance:
-$$\text{DSR} = \Phi \left[ \frac{(\widehat{SR} - SR^*) \sqrt{T-1}}{\sqrt{1 - \gamma_3 \widehat{SR} + \frac{\gamma_4 - 1}{4} \widehat{SR}^2}} \right]$$
+> [!IMPORTANT]
+> **The Physics of Capital Flow!**
+> Rolling Rebalancing Tranches act as the breathing lung of the fund. By dividing the portfolio into $N=21$ tranches and rebalancing 1/21st daily, the Smart Order Router (SOR) spreads trading volume across the entire month, avoiding lit exchange bottlenecks:
+> $$\text{Tranche Weights} = \frac{1}{21}\sum_{k=0}^{20} W_{t-k}$$
 
-### 5. Execution Costs & Slippage
-* **Non-linear Market Impact (Slippage)**: Incorporates daily stock volumes to compute realistic transaction costs that scale with trade volume relative to Average Daily Volume (ADV):
-  $$\text{Slippage}_{i,t} = \text{Spread BPs} + \gamma \times \sigma_{i,20} \times \sqrt{\frac{\text{Trade Shares}_{i,t}}{\text{ADV Shares}_{i,20}}}$$
+---
+
+## Smart Order Routing & Execution (AUM $100M - $50B)
+
+At institutional scale, order flow must be executed using multi-tiered Smart Order Routers (SOR) to prevent front-running and adverse price impact:
+* **Dark Pool Crossing ($100M - $1B AUM)**: Orders are matched internally inside crossing networks (e.g., Liquidnet, Instinet BlockMatch) to print trades only after completion, bypassing lit books.
+* **Participation Throttling ($1B - $10B AUM)**: Slices trades using VWAP/TWAP schedules, limiting the Participation Rate (POV) strictly below **5% of the security's historical ADV**.
+* **Internalization & OTC Crossing ($10B - $50B AUM)**: Matches momentum flows internally against secondary strategies or negotiates block size trades OTC with bilateral market makers.
 
 ---
 
@@ -68,7 +64,5 @@ $$\text{DSR} = \Phi \left[ \frac{(\widehat{SR} - SR^*) \sqrt{T-1}}{\sqrt{1 - \ga
    - *López de Prado, M. (2018)*. "Advances in Financial Machine Learning." *Wiley*, Chapter 14.
 3. **Asset Pricing & Factor Models**:
    - *Fama, E. F. and French, K. R. (2015)*. "A Five-Factor Asset Pricing Model." *Journal of Financial Economics*, 116(1), 1-22.
-   - *Fama, E. F. and MacBeth, J. D. (1973)*. "Risk, Return, and Equilibrium: Empirical Tests." *Journal of Political Economy*, 81(3), 607-636.
 4. **Market Microstructure & Market Impact**:
-   - *Kyle, A. S. (1985)*. "Continuous Auctions and Informed Trader." *Econometrica*, 53(6), 1315-1335.
    - *Almgren, R., Thum, C., Hauptmann, E. and Li, H. (2005)*. "Direct Estimation of Equity Market Impact." *Risk*, 18(7), 57-62.
