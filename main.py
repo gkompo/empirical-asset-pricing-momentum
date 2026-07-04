@@ -468,6 +468,17 @@ plt.close()
 # Write master report
 report_markdown = f"""# Institutional Systematic Asset Pricing & Momentum Research Report
 
+## Historical Context: From Richard Driehaus to Academic Validation
+Momentum investing—the systematic practice of buying recent winners and selling recent losers—stands as one of the most robust and heavily researched anomalies in modern financial economics. 
+
+The strategy was pioneered in the 1970s and 1980s by **Richard Driehaus**, widely recognized as the **Father of Momentum Investing**. Unlike traditional value managers who sought cheap, distressed companies and waited for a reversion to the mean, Driehaus revolutionized active growth management with a simple, punchy philosophy: **"Buy high and sell higher!"** He argued that earnings growth and price acceleration were not signs of overvaluation but rather indicators of structural business acceleration. Driehaus preferred to buy stocks that were already hitting new highs, betting that earnings revisions and investor behavioral biases would continue to push their prices upward.
+
+For decades, the mainstream academic community dismissed Driehaus's success as luck or uncompensated risk, clinging to the Efficient Market Hypothesis. However, in 1993, economists **Narasimhan Jegadeesh and Sheridan Titman** published their seminal paper, *"Returns to Buying Winners and Selling Losers: Implications for Stock Market Efficiency."* They empirically proved that stock returns exhibit trend persistence over 3 to 12-month lookback horizons, and that a long-short momentum portfolio generated highly significant, persistent abnormal returns (Alphas) that could not be explained by the CAPM market beta. 
+
+This platform bridges the gap between Driehaus's practitioner intuition and Jegadeesh & Titman's asset pricing rigor. We implement an **Inverse Volatility Weighted Momentum Strategy** on the Russell 3000 universe, incorporating non-linear execution costs, trend-following futures hedging, and multi-period regressions.
+
+---
+
 ## 1. Executive Performance Summary (Sub-Period Analysis with Futures Hedging)
 This platform implements a **Long-Only Inverse Volatility Weighted Raw Momentum Portfolio** on the Russell 3000 universe. Below is the multi-period rolling backtest performance summary evaluated using a static **{RISK_FREE_RATE:.1%} annual risk-free rate**, including our **Trend-Following Futures Hedged** and **Tranche-Rebalanced (Rolling)** versions across Gross and Net:
 

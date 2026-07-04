@@ -4,6 +4,18 @@ We have successfully rebuilt the systematic platform to use **Inverse Volatility
 
 ---
 
+## Historical Context: From Richard Driehaus to Academic Validation
+
+Momentum investing—the systematic practice of buying recent winners and selling recent losers—stands as one of the most robust and heavily researched anomalies in modern financial economics. 
+
+The strategy was pioneered in the 1970s and 1980s by **Richard Driehaus**, widely recognized as the **Father of Momentum Investing**. Unlike traditional value managers who sought cheap, distressed companies and waited for a reversion to the mean, Driehaus revolutionized active growth management with a simple, punchy philosophy: **"Buy high and sell higher!"** He argued that earnings growth and price acceleration were not signs of overvaluation but rather indicators of structural business acceleration. Driehaus preferred to buy stocks that were already hitting new highs, betting that earnings revisions and investor behavioral biases would continue to push their prices upward.
+
+For decades, the mainstream academic community dismissed Driehaus's success as luck or uncompensated risk, clinging to the Efficient Market Hypothesis. However, in 1993, economists **Narasimhan Jegadeesh and Sheridan Titman** published their seminal paper, *"Returns to Buying Winners and Selling Losers: Implications for Stock Market Efficiency."* They empirically proved that stock returns exhibit trend persistence over 3 to 12-month lookback horizons, and that a long-short momentum portfolio generated highly significant, persistent abnormal returns (Alphas) that could not be explained by the CAPM market beta. 
+
+This platform bridges the gap between Driehaus's practitioner intuition and Jegadeesh & Titman's asset pricing rigor. We implement an **Inverse Volatility Weighted Momentum Strategy** on the Russell 3000 universe, incorporating non-linear execution costs, trend-following futures hedging, and multi-period regressions.
+
+---
+
 ## 1. Performance Summary (Sub-Periods & Futures Hedging)
 
 Using Fama-French daily benchmarks to ensure statistical and economic alignment, we evaluated the **Long-Only Inverse Volatility Weighted Raw Momentum Strategy** across four macro market windows, comparing unhedged vs. futures-hedged versions for Gross, Net, and Tranche-Rebalanced portfolios at a **$1M AUM scale**:
@@ -46,7 +58,7 @@ Using Fama-French daily benchmarks to ensure statistical and economic alignment,
 
 ---
 
-## 2. Selection Quantiles (1%, 3%, 5%, 10%, 20%)
+## 2. Portfolio Selection: Concentration vs. Diversification Analysis
 
 We simulated different selection thresholds for the raw momentum basket at a **$1M AUM scale** as requested. Within all compared portfolio selections, we use the exact same **Inverse Volatility Weighting** algorithm ($w_i \propto 1/\sigma_i$) as defined in Section 1. If $N$ stocks are selected in the Top $Q\%$ rank on date $t$, their cross-sectional weights are allocated inversely to their rolling 20-day daily standard deviation (clipped to the 0.005 risk floor and filtered) and normalized to sum to 1.0. This holds the weighting methodology constant to isolate only the effect of portfolio concentration vs. diversification:
 
@@ -84,7 +96,7 @@ We compared the execution decay of standard month-end block rebalancing (Standar
 | **$10.0B** | -37.20% | -0.729 | 9.99% | 0.350 | **22.63%** | **0.801** |
 | **$50.0B** | -71.02% | -1.467 | -7.87% | -0.380 | **17.54%** | **0.625** |
 
-* **Tranche Capacity Edge**: Tranche rebalancing combined with Smart Order Routing (SOR) and dark pool crossing completely eliminates execution-related decay. At **$50B AUM**, where standard month-end rebalancing is bankrupt (-71.02% CAGR), the **Tranche Algorithmic/SOR** strategy retains a highly positive and viable **17.54% CAGR** and a **0.625 Sharpe ratio**!
+* **Tranche Capacity Edge**: Tranche rebalancing combined with Smart Order Router (SOR) algorithms and dark pool crossing completely eliminates execution-related decay. At **$50B AUM**, where standard month-end rebalancing is bankrupt (-71.02% CAGR), the **Tranche Algorithmic/SOR** strategy retains a highly positive and viable **17.54% CAGR** and a **0.625 Sharpe ratio**!
 
 #### Slippage Capacity Curve Comparison
 ![Capacity Decay](/C:/Users/USER/.gemini/antigravity/brain/6a51fe4b-c7c3-42f7-b5a1-3aff0392ecaa/capacity_decay.png)
