@@ -99,9 +99,23 @@ We model execution slippage using a non-linear market impact function:
 where $\text{spread} = 5.0$ bps, $V_{i,t}$ is the volume traded, $\text{ADV}_{i,t}$ is the 20-day Average Daily Volume, and $\gamma$ represents the exchange routing impact coefficient. We compare three regimes:
 \begin{itemize}
     \item \textbf{Standard Lit Block}: $\gamma = 0.5$, executed at month-end.
-    \item \textbf{Tranche Lit}: $\gamma = 0.5$, rebalanced daily across 21 tranches ($1/21$th of the book per day).
-    \textbf{Tranche SOR/Dark Pool}: $\gamma_{\text{eff}} = 0.12$, modeling a 40\% dark pool crossing rate at zero market impact.
+    \item \textbf{Tranche Lit}: $\gamma = 0.5$, rebalanced daily across 21 tranches ($1/21$th of the portfolio book per day).
+    \item \textbf{Tranche SOR/Dark Pool}: $\gamma_{\text{eff}} = 0.12$, modeling a 40\% dark pool crossing rate at zero market impact.
 \end{itemize}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.85\textwidth]{results/figures/equity_curve_general_full_horizon_2012-2026.png}
+    \caption{Volatility-Weighted Momentum Strategy: Full Horizon General Portfolio Returns (2012--2026)}
+    \label{fig:pnl_general}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.85\textwidth]{results/figures/equity_curve_hedging_full_horizon_2012-2026.png}
+    \caption{Futures Trend-Hedging Impact Comparison: Full Horizon Performance (2012--2026)}
+    \label{fig:pnl_hedging}
+\end{figure}
 
 % =========================================================================
 \section{Identification Tests}
@@ -122,10 +136,24 @@ To ensure the empirical validity of our findings, we conduct the following tests
     \item \textbf{Parameter Sensitivity}: We vary the selection threshold $K$ from $1\%$ to $20\%$ to verify that the optimal performance (the \$1M sweet spot at $3\%$) is stable and does not represent data-snooping.
 \end{itemize}
 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.85\textwidth]{results/figures/quantile_comparison.png}
+    \caption{Quantile Selection Sensitivity Sweep: Cumulative Returns for Top 1\%, 3\%, 5\%, 10\%, and 20\% Thresholds}
+    \label{fig:quantile_selection}
+\end{figure}
+
 % =========================================================================
 \section{Economic Interpretation}
 % =========================================================================
 Our results document that risk-adjusted weighting successfully reallocates capital toward high-information-ratio names, improving Sharpe ratios but amplifying size ($SMB$) tilts. The economic interpretation of the capacity decay curves highlights that liquidity, rather than signal decay, is the primary barrier to institutional arbitrage. Sophisticated execution architectures (tranches and dark crossings) successfully capture the premium at institutional scales by converting block execution into continuous flow, effectively shifting the capacity limit.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.85\textwidth]{results/figures/capacity_decay.png}
+    \caption{Slippage Capacity Decay Curves: Net Sharpe Ratio as a Function of AUM across Routing Regimes}
+    \label{fig:capacity_decay}
+\end{figure}
 
 \bibliographystyle{ape}
 \begin{thebibliography}{xxxx}
