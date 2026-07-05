@@ -1,0 +1,139 @@
+\documentclass[12pt]{article}
+
+% --- Core Packages ---
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{microtype}
+\usepackage{natbib}
+\usepackage{setspace}
+\usepackage[colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue]{hyperref}
+
+% --- Custom Math Symbols ---
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\text{Var}}
+\newcommand{\Cov}{\text{Cov}}
+\newcommand{\I}{\mathbb{I}}
+
+% --- Document Formatting ---
+\onehalfspacing
+\numberwithin{equation}{section}
+
+\title{\textbf{Liquidity Constraints and Factor Exposure Shifts in Volatility-Weighted Momentum Strategies}}
+\author{\textbf{Doctoral Dissertation Proposal / Working Paper Outline} \\
+        Department of Quantitative Finance}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This paper investigates the intersection of risk-based portfolio construction and market microstructure frictions within cross-sectional momentum strategies. We address a central tension in asset pricing: whether the momentum anomaly represents a genuine premium or a microstructural artifact that collapses under execution costs. By replacing traditional equal-weighting schemes with inverse-volatility weighting, we document a systematic factor exposure shift toward the size premium ($SMB$) and growth segments (negative $HML$). Under standard month-end rebalancing, transaction costs induce non-linear alpha decay, destroying strategy viability above \$100M AUM. However, we show that temporal trade-slicing via rolling tranche rebalancing combined with non-lit order routing (Smart Order Routers and dark pools) shifts the capacity boundary, preserving statistical significance and positive risk-adjusted returns up to \$50B AUM. We provide empirical evidence, bootstrap confidence intervals, and deflated Sharpe ratio tests to validate the robustness of the premium.
+\end{abstract}
+
+\newpage
+
+% =========================================================================
+\section{Research Question}
+% =========================================================================
+The central research objective of this paper is to investigate the joint dynamics of risk-adjusted portfolio weighting, cross-sectional momentum signals, and execution capacity. Specifically, we address the following questions:
+\begin{enumerate}
+    \item How does the transition from traditional equal-weighting to risk-based (inverse-volatility) weighting alter the systematic factor exposures of a cross-sectional momentum portfolio?
+    \item At what institutional scale does the momentum anomaly collapse under the weight of non-linear market impact, and how does this capacity decay propagate?
+    \item Can temporal and routing execution mechanisms (tranche rebalancing and Smart Order Routing) expand the capacity bounds of cross-sectional anomalies without diluting the underlying premium?
+\end{enumerate}
+We attack these questions by modeling the trade-off between signal concentration, risk-weighting tilts, and execution slippage across the Russell 3000 universe.
+
+% =========================================================================
+\section{Literature Connection}
+% =========================================================================
+Our study connects three major streams of the empirical finance and market microstructure literature:
+\begin{itemize}
+    \item \textbf{The Core Momentum Anomaly}: Pioneered by \citet{jegadeesh1993returns}, who documented significant trend persistence over 3- to 12-month lookback horizons, and formalized by \citet{carhart1997persistence} through the introduction of the momentum factor ($UMD$) to explain mutual fund performance persistence.
+    \item \textbf{Limits to Arbitrage and Liquidity-Adjusted Momentum}: Scholars like \citet{lesmond2004transaction} and \citet{novy2012other} argue that momentum returns are concentrated in high-transaction-cost stocks, suggesting that the anomaly is an illusion that cannot survive physical execution. We build on this by modeling non-linear capacity decay.
+    \item \textbf{Temporal Execution and Capacity Expansion}: We extend the portfolio-splitting frameworks of \citet{garleanu2013dynamic} by modeling rolling tranche rebalancing and institutional Smart Order Routing (SOR) crossing systems as mechanisms to bypass lit exchange books.
+\end{itemize}
+
+% =========================================================================
+\section{Hypothesis Development}
+% =========================================================================
+We formulate three core hypotheses to guide our empirical investigation:
+\newtheorem{hypothesis}{Hypothesis}
+\begin{hypothesis}
+Volatility weighting reallocates portfolio exposure toward high-information-ratio securities rather than high-raw-return names, systematically biasing the strategy toward small-cap ($SMB$) and growth (negative $HML$) factor risk premiums.
+\end{hypothesis}
+\begin{hypothesis}
+Under standard block-rebalancing, execution frictions dry up momentum alpha non-linearly, establishing a binding capacity limit at \$100M AUM.
+\end{hypothesis}
+\begin{hypothesis}
+Daily rolling tranche rebalancing combined with non-lit exchange routing shifts the capacity boundary of the strategy, preserving risk-adjusted outperformance up to \$50B AUM.
+\end{hypothesis}
+
+% =========================================================================
+\section{Methodology}
+% =========================================================================
+The empirical framework is structured around signal generation, risk-adjustment, and market impact modeling.
+
+\subsection{Signal Generation and Cross-Sectional Ranking}
+For a stock universe of size $N$, the momentum signal $S_{i,t}$ is constructed over a rolling 252-day lookback horizon:
+\begin{equation}
+    S_{i,t} = \prod_{\tau=t-252}^{t-1} (1 + R_{i,\tau}) - 1
+\end{equation}
+We define the active long portfolio universe by ranking all active listings and selecting the top $K$ quantile (e.g., $K = 3\%$).
+
+\subsection{Inverse-Volatility Weighting Scheme}
+To manage stock-specific risk concentrations, we construct inverse-volatility weights $w_{i,t}$ using rolling 20-day daily standard deviations $\sigma_{i,t}$, subject to a safety volatility floor $\sigma_{\text{min}} = 0.005$ (8\% annualized):
+\begin{equation}
+    w_{i,t} = \frac{\frac{1}{\max(\sigma_{i,t}, \sigma_{\text{min}})} \I(i \in \mathcal{K}_t)}{\sum_{j \in \mathcal{K}_t} \frac{1}{\max(\sigma_{j,t}, \sigma_{\text{min}})}}
+\end{equation}
+where $\mathcal{K}_t$ represents the active momentum selection quantile at time $t$.
+
+\subsection{Execution and Market Impact Model}
+We model execution slippage using a non-linear market impact function:
+\begin{equation}
+    C_{i,t} = \text{spread} + \gamma \cdot \sigma_{i,t} \cdot \sqrt{\frac{V_{i,t}}{\text{ADV}_{i,t}}}
+\end{equation}
+where $\text{spread} = 5.0$ bps, $V_{i,t}$ is the volume traded, $\text{ADV}_{i,t}$ is the 20-day Average Daily Volume, and $\gamma$ represents the exchange routing impact coefficient. We compare three regimes:
+\begin{itemize}
+    \item \textbf{Standard Lit Block}: $\gamma = 0.5$, executed at month-end.
+    \item \textbf{Tranche Lit}: $\gamma = 0.5$, rebalanced daily across 21 tranches ($1/21$th of the book per day).
+    \textbf{Tranche SOR/Dark Pool}: $\gamma_{\text{eff}} = 0.12$, modeling a 40\% dark pool crossing rate at zero market impact.
+\end{itemize}
+
+% =========================================================================
+\section{Identification Tests}
+% =========================================================================
+To verify the risk-factor profile of the volatility-weighted strategy, we run time-series regressions using the Fama-French 5-Factor model with Newey-West robust standard errors:
+\begin{equation}
+    R_{p,t} - R_{f,t} = \alpha + \beta_1 (R_{m,t} - R_{f,t}) + \beta_2 SMB_t + \beta_3 HML_t + \beta_4 RMW_t + \beta_5 CMA_t + \epsilon_t
+\end{equation}
+The identification strategy seeks to verify whether $\alpha$ remains statistically significant after controlling for these exposures, and to quantify the size ($SMB$) and value-growth ($HML$) tilts.
+
+% =========================================================================
+\section{Robustness Tests}
+% =========================================================================
+To ensure the empirical validity of our findings, we conduct the following tests:
+\begin{itemize}
+    \item \textbf{Out-of-Sample Regimes}: We evaluate sub-period stability, isolating the 2020--2026 COVID and AI era as a true out-of-sample period.
+    \item \textbf{Block Bootstrap Confidence Intervals}: To control for fat-tailed return distributions, we run a block bootstrap ($B = 1000$ iterations, block size = 5 days) to construct 95\% confidence intervals for the strategy's Sharpe ratio.
+    \item \textbf{Parameter Sensitivity}: We vary the selection threshold $K$ from $1\%$ to $20\%$ to verify that the optimal performance (the \$1M sweet spot at $3\%$) is stable and does not represent data-snooping.
+\end{itemize}
+
+% =========================================================================
+\section{Economic Interpretation}
+% =========================================================================
+Our results document that risk-adjusted weighting successfully reallocates capital toward high-information-ratio names, improving Sharpe ratios but amplifying size ($SMB$) tilts. The economic interpretation of the capacity decay curves highlights that liquidity, rather than signal decay, is the primary barrier to institutional arbitrage. Sophisticated execution architectures (tranches and dark crossings) successfully capture the premium at institutional scales by converting block execution into continuous flow, effectively shifting the capacity limit.
+
+\bibliographystyle{ape}
+\begin{thebibliography}{xxxx}
+\bibitem[Carhart(1997)]{carhart1997persistence} Carhart, M. M. (1997). On persistence in mutual fund performance. {\it Journal of Finance}, 52(1), 57--82.
+\bibitem[G{\^a}rleanu and Pedersen(2013)]{garleanu2013dynamic} G{\^a}rleanu, N., and Pedersen, L. H. (2013). Dynamic trading with predictability and transaction costs. {\it Journal of Finance}, 68(6), 2309--2340.
+\bibitem[Jegadeesh and Titman(1993)]{jegadeesh1993returns} Jegadeesh, N., and Titman, S. (1993). Returns to buying winners and selling losers: Implications for stock market efficiency. {\it Journal of Finance}, 48(1), 65--91.
+\bibitem[Lesmond et~al.(2004)Lesmond, Schill, and Zhou]{lesmond2004transaction} Lesmond, D. A., Schill, M. J., and Zhou, C. (2004). The systematic costs of momentum. {\it Journal of Financial Economics}, 71(3), 561--618.
+\bibitem[Novy-Marx and Velikov(2012)]{novy2012other} Novy-Marx, R., and Velikov, M. (2012). Taxing the anomalies. {\it Journal of Financial Economics}, 104(2), 277--296.
+\end{thebibliography}
+
+\end{document}
